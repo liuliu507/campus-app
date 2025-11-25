@@ -57,8 +57,8 @@ export default function SecondhandModal({ onClose, activeTab, setActiveTab }: Se
             <button
               onClick={() => setActiveTab('sell')}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'sell'
-                  ? 'bg-white text-orange-600 shadow-lg'
-                  : 'bg-orange-500 text-white hover:bg-orange-400'
+                ? 'bg-white text-orange-600 shadow-lg'
+                : 'bg-orange-500 text-white hover:bg-orange-400'
                 }`}
             >
               🛒 我要卖货
@@ -66,8 +66,8 @@ export default function SecondhandModal({ onClose, activeTab, setActiveTab }: Se
             <button
               onClick={() => setActiveTab('buy')}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'buy'
-                  ? 'bg-white text-orange-600 shadow-lg'
-                  : 'bg-orange-500 text-white hover:bg-orange-400'
+                ? 'bg-white text-orange-600 shadow-lg'
+                : 'bg-orange-500 text-white hover:bg-orange-400'
                 }`}
             >
               🔍 我要买货

@@ -241,8 +241,8 @@ export default function FriendsPage() {
                       )}
                       {activity.gender !== '不限' && (
                         <span className={`text-xs px-2 py-1 rounded-full font-medium ${activity.gender === '女生'
-                            ? 'bg-pink-100 text-pink-800'
-                            : 'bg-blue-100 text-blue-800'
+                          ? 'bg-pink-100 text-pink-800'
+                          : 'bg-blue-100 text-blue-800'
                           }`}>
                           {activity.gender}专属
                         </span>
@@ -332,8 +332,8 @@ export default function FriendsPage() {
                     onClick={() => handleJoin(activity.id)}
                     disabled={activity.maxParticipants > 0 && activity.participants >= activity.maxParticipants}
                     className={`flex-1 py-3 px-6 rounded-lg font-medium transition-colors ${activity.maxParticipants > 0 && activity.participants >= activity.maxParticipants
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'bg-teal-600 hover:bg-teal-700 text-white'
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-teal-600 hover:bg-teal-700 text-white'
                       }`}
                   >
                     {activity.maxParticipants > 0 && activity.participants >= activity.maxParticipants

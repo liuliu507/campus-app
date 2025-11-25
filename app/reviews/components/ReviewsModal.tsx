@@ -68,8 +68,8 @@ export default function ReviewsModal({ onClose, activeTab, setActiveTab }: Revie
                 setFormData({ ...formData, type: '红榜', rating: 5 })
               }}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'red'
-                  ? 'bg-white text-red-600 shadow-lg'
-                  : 'bg-red-500 text-white hover:bg-red-400'
+                ? 'bg-white text-red-600 shadow-lg'
+                : 'bg-red-500 text-white hover:bg-red-400'
                 }`}
             >
               👍 红榜推荐
@@ -80,8 +80,8 @@ export default function ReviewsModal({ onClose, activeTab, setActiveTab }: Revie
                 setFormData({ ...formData, type: '黑榜', rating: 1 })
               }}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'black'
-                  ? 'bg-white text-gray-800 shadow-lg'
-                  : 'bg-gray-700 text-white hover:bg-gray-600'
+                ? 'bg-white text-gray-800 shadow-lg'
+                : 'bg-gray-700 text-white hover:bg-gray-600'
                 }`}
             >
               👎 黑榜避雷
@@ -136,8 +136,8 @@ export default function ReviewsModal({ onClose, activeTab, setActiveTab }: Revie
                     type="button"
                     onClick={() => setFormData({ ...formData, rating: star })}
                     className={`text-2xl ${star <= formData.rating
-                        ? activeTab === 'red' ? 'text-yellow-400' : 'text-gray-400'
-                        : 'text-gray-300'
+                      ? activeTab === 'red' ? 'text-yellow-400' : 'text-gray-400'
+                      : 'text-gray-300'
                       }`}
                   >
                     {star <= formData.rating ? '⭐' : '☆'}
@@ -179,8 +179,8 @@ export default function ReviewsModal({ onClose, activeTab, setActiveTab }: Revie
                     onClick={() => handleAddTag(tag)}
                     disabled={formData.tags.includes(tag) || formData.tags.length >= 5}
                     className={`px-3 py-1 rounded-full text-sm transition-colors ${formData.tags.includes(tag)
-                        ? 'bg-red-100 text-red-800 cursor-not-allowed'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-red-100 text-red-800 cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                   >
                     {tag}
@@ -276,8 +276,8 @@ export default function ReviewsModal({ onClose, activeTab, setActiveTab }: Revie
             <button
               type="submit"
               className={`w-full font-bold py-4 px-6 rounded-xl text-lg transition-colors ${activeTab === 'red'
-                  ? 'bg-red-600 hover:bg-red-700 text-white'
-                  : 'bg-gray-800 hover:bg-gray-900 text-white'
+                ? 'bg-red-600 hover:bg-red-700 text-white'
+                : 'bg-gray-800 hover:bg-gray-900 text-white'
                 }`}
             >
               🚀 发布评价

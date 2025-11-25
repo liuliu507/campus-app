@@ -236,8 +236,8 @@ export default function ErrandPage() {
                 <button
                   onClick={() => setActiveTab('all')}
                   className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${activeTab === 'all'
-                      ? 'bg-green-100 text-green-700 border-2 border-green-300'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-green-100 text-green-700 border-2 border-green-300'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                 >
                   全部任务
@@ -245,8 +245,8 @@ export default function ErrandPage() {
                 <button
                   onClick={() => setActiveTab('nearby')}
                   className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${activeTab === 'nearby'
-                      ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                 >
                   附近任务
@@ -254,8 +254,8 @@ export default function ErrandPage() {
                 <button
                   onClick={() => setActiveTab('urgent')}
                   className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all ${activeTab === 'urgent'
-                      ? 'bg-red-100 text-red-700 border-2 border-red-300'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-red-100 text-red-700 border-2 border-red-300'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                 >
                   紧急任务
@@ -373,8 +373,8 @@ export default function ErrandPage() {
                     onClick={() => handleTakeOrder(task.id)}
                     disabled={task.status === '已满'}
                     className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${task.status === '已满'
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow hover:shadow-md'
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow hover:shadow-md'
                       }`}
                   >
                     {task.status === '已满' ? '已满员' : '✅ 立即接单'}

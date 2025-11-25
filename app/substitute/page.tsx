@@ -209,8 +209,8 @@ export default function SubstitutePage() {
                 <button
                   onClick={() => setActiveTab('find')}
                   className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${activeTab === 'find'
-                      ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-blue-100 text-blue-700 border-2 border-blue-300'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                 >
                   我的需求
@@ -218,8 +218,8 @@ export default function SubstitutePage() {
                 <button
                   onClick={() => setActiveTab('take')}
                   className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${activeTab === 'take'
-                      ? 'bg-green-100 text-green-700 border-2 border-green-300'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-green-100 text-green-700 border-2 border-green-300'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                 >
                   接单赚钱
@@ -341,8 +341,8 @@ export default function SubstitutePage() {
                     onClick={() => handleTakeOrder(task.id)}
                     disabled={task.status === '已满'}
                     className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all ${task.status === '已满'
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow hover:shadow-md'
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow hover:shadow-md'
                       }`}
                   >
                     {task.status === '已满' ? '已满员' : '✅ 立即接单'}

@@ -176,8 +176,8 @@ export default function SharePage() {
               <button
                 onClick={() => setActiveTab('all')}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'all'
-                    ? 'bg-pink-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-pink-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
               >
                 全部动态
@@ -185,8 +185,8 @@ export default function SharePage() {
               <button
                 onClick={() => setActiveTab('hot')}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'hot'
-                    ? 'bg-pink-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-pink-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
               >
                 🔥 热门
@@ -200,8 +200,8 @@ export default function SharePage() {
                   key={tag}
                   onClick={() => setSelectedTag(tag)}
                   className={`whitespace-nowrap px-3 py-2 rounded-lg text-sm transition-colors ${selectedTag === tag
-                      ? 'bg-pink-100 text-pink-700 border border-pink-300'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-pink-100 text-pink-700 border border-pink-300'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
                   {tag}
@@ -242,8 +242,8 @@ export default function SharePage() {
                 {/* 图片展示 */}
                 {story.images && story.images.length > 0 && (
                   <div className={`grid gap-2 mb-4 ${story.images.length === 1 ? 'grid-cols-1' :
-                      story.images.length === 2 ? 'grid-cols-2' :
-                        'grid-cols-3'
+                    story.images.length === 2 ? 'grid-cols-2' :
+                      'grid-cols-3'
                     }`}>
                     {story.images.map((image, index) => (
                       <div
@@ -280,8 +280,8 @@ export default function SharePage() {
                   <button
                     onClick={() => handleLike(story.id)}
                     className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition-colors ${story.liked
-                        ? 'text-pink-600 bg-pink-50'
-                        : 'text-gray-600 hover:bg-gray-100'
+                      ? 'text-pink-600 bg-pink-50'
+                      : 'text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     {story.liked ? '❤️' : '🤍'} 点赞

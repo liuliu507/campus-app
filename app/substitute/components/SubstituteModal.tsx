@@ -23,17 +23,28 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
 
   const campuses = ['主校区', '东校区', '西校区', '新校区']
   const courseTypes = [
-    { value: '水课', label: '水课', description: '轻松简单，可自习' },
-    { value: '专业课', label: '专业课', description: '需要认真听讲' }
+    { value: '水课', label: '水课', emoji: '💦', description: '轻松简单，可自习' },
+    { value: '专业课', label: '专业课', emoji: '📚', description: '需要认真听讲' },
+    { value: '体育课', label: '体育课', emoji: '⚽', description: '需要运动能力' },
+    { value: '实验课', label: '实验课', emoji: '🔬', description: '需要动手操作' }
   ]
-  const urgencyLevels = ['一般', '紧急', '非常紧急']
+  const urgencyLevels = [
+    { value: '一般', label: '一般', color: 'text-gray-600' },
+    { value: '紧急', label: '紧急', color: 'text-orange-600' },
+    { value: '非常紧急', label: '非常紧急', color: 'text-red-600 font-bold' }
+  ]
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     console.log('发布代课需求:', formData)
-    // 这里后续会连接后端API
-    alert('代课需求发布成功！')
+    alert('代课需求发布成功！等待同学接单')
     onClose()
+  }
+
+  const isFormValid = () => {
+    return formData.title && formData.course && formData.teacher &&
+      formData.campus && formData.time && formData.date &&
+      formData.price && formData.description && formData.contact
   }
 
   return (
@@ -42,10 +53,13 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
         {/* 弹窗头部 */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-white">发布代课需求</h2>
+            <div>
+              <h2 className="text-2xl font-bold text-white">发布代课需求</h2>
+              <p className="text-blue-100 text-sm mt-1">详细填写信息，更快找到合适的代课</p>
+            </div>
             <button
               onClick={onClose}
-              className="text-white hover:text-gray-200 text-2xl"
+              className="text-white hover:text-blue-200 text-2xl transition-colors"
             >
               ✕
             </button>
@@ -55,21 +69,22 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
         {/* 弹窗内容 */}
         <div className="p-6 max-h-[60vh] overflow-y-auto">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                需求标题 *
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="例如：周一高数课代课"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
+            {/* 基础信息 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  需求标题 *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="例如：周一高数课代课"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   课程名称 *
@@ -83,7 +98,9 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   任课老师 *
@@ -97,9 +114,7 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   上课校区 *
@@ -116,7 +131,10 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
                   ))}
                 </select>
               </div>
+            </div>
 
+            {/* 时间信息 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   上课时间 *
@@ -130,9 +148,7 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   上课日期 *
@@ -145,7 +161,10 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
+            </div>
 
+            {/* 课程类型和报酬 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   课程类型 *
@@ -157,65 +176,72 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
                       type="button"
                       onClick={() => setFormData({ ...formData, type: type.value })}
                       className={`p-3 border-2 rounded-xl text-center transition-all ${formData.type === type.value
-                          ? type.value === '水课'
-                            ? 'border-green-500 bg-green-50 text-green-700'
-                            : 'border-blue-500 bg-blue-50 text-blue-700'
+                          ? 'border-blue-500 bg-blue-50 shadow-sm'
                           : 'border-gray-300 hover:border-gray-400'
                         }`}
                     >
-                      <div className="font-medium">{type.label}</div>
+                      <div className="text-lg mb-1">{type.emoji}</div>
+                      <div className="font-medium text-sm">{type.label}</div>
                       <div className="text-xs text-gray-500 mt-1">{type.description}</div>
                     </button>
                   ))}
                 </div>
               </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    报酬金额 *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="例如：30元"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    紧急程度
+                  </label>
+                  <select
+                    value={formData.urgency}
+                    onChange={(e) => setFormData({ ...formData, urgency: e.target.value })}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {urgencyLevels.map(level => (
+                      <option key={level.value} value={level.value} className={level.color}>
+                        {level.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  报酬金额 *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="例如：30元"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  紧急程度
-                </label>
-                <select
-                  value={formData.urgency}
-                  onChange={(e) => setFormData({ ...formData, urgency: e.target.value })}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {urgencyLevels.map(level => (
-                    <option key={level} value={level}>{level}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
+            {/* 详细描述 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                补充说明 *
+                详细要求 *
               </label>
               <textarea
                 required
-                placeholder="请详细说明代课要求，例如：是否需要回答问题、签到方式、课堂注意事项等..."
+                placeholder="请详细说明代课要求：
+• 是否需要回答问题
+• 签到方式（纸质/电子）
+• 课堂注意事项
+• 其他特殊要求"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={4}
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               />
             </div>
 
+            {/* 联系方式 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 联系方式 *
@@ -223,26 +249,18 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
               <input
                 type="text"
                 required
-                placeholder="手机号或微信"
+                placeholder="手机号或微信，用于接单者联系您"
                 value={formData.contact}
                 onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
                 className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
-            <div className="bg-blue-50 rounded-xl p-4">
-              <h4 className="font-bold text-blue-800 mb-2">💡 发布建议</h4>
-              <ul className="text-blue-700 text-sm space-y-1">
-                <li>• 详细说明代课要求，避免误会</li>
-                <li>• 设置合理的报酬金额</li>
-                <li>• 及时与接单者沟通确认</li>
-                <li>• 代课完成后及时确认完成</li>
-              </ul>
-            </div>
-
+            {/* 发布按钮 */}
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition-colors"
+              disabled={!isFormValid()}
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-6 rounded-xl text-lg transition-all duration-300 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
             >
               🚀 发布代课需求
             </button>

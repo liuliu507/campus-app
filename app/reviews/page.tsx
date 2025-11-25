@@ -110,8 +110,8 @@ export default function ReviewsPage() {
               <button
                 onClick={() => setActiveTab('red')}
                 className={`flex-1 px-6 py-4 rounded-xl font-bold text-lg transition-all ${activeTab === 'red'
-                    ? 'bg-red-100 text-red-700 border-2 border-red-300'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-red-100 text-red-700 border-2 border-red-300'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
               >
                 🔥 红榜推荐
@@ -119,8 +119,8 @@ export default function ReviewsPage() {
               <button
                 onClick={() => setActiveTab('black')}
                 className={`flex-1 px-6 py-4 rounded-xl font-bold text-lg transition-all ${activeTab === 'black'
-                    ? 'bg-gray-800 text-white border-2 border-gray-600'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-gray-800 text-white border-2 border-gray-600'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
               >
                 ⚫ 黑榜避雷
@@ -219,8 +219,8 @@ export default function ReviewsPage() {
                     <span
                       key={index}
                       className={`px-3 py-1 rounded-full text-sm font-medium ${review.type === '红榜'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-gray-200 text-gray-700'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-gray-200 text-gray-700'
                         }`}
                     >
                       {tag}
