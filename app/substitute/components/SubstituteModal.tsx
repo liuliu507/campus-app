@@ -1,17 +1,18 @@
+// components/SubstituteModal.tsx
 'use client'
 
 import { useState } from 'react'
 
 interface SubstituteModalProps {
   onClose: () => void
+  onPublish: (formData: any) => void
 }
 
-export default function SubstituteModal({ onClose }: SubstituteModalProps) {
+export default function SubstituteModal({ onClose, onPublish }: SubstituteModalProps) {
   const [formData, setFormData] = useState({
     title: '',
-    course: '',
-    teacher: '',
     campus: '',
+    gender: '',
     time: '',
     date: '',
     type: '水课',
@@ -21,10 +22,11 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
     urgency: '一般'
   })
 
-  const campuses = ['主校区', '东校区', '西校区', '新校区']
+  const campuses = ['桃花坪', '二里半', '南苑', '天马', '咸嘉湖', '江边']
+  const genders = ['女', '男', '不限']
   const courseTypes = [
     { value: '水课', label: '水课', emoji: '💦', description: '轻松简单，可自习' },
-    { value: '专业课', label: '专业课', emoji: '📚', description: '需要认真听讲' },
+    { value: '专业课', label: '专业课', emoji: '📚', description: '需要做笔记' },
     { value: '体育课', label: '体育课', emoji: '⚽', description: '需要运动能力' },
     { value: '实验课', label: '实验课', emoji: '🔬', description: '需要动手操作' }
   ]
@@ -34,16 +36,27 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
     { value: '非常紧急', label: '非常紧急', color: 'text-red-600 font-bold' }
   ]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('发布代课需求:', formData)
-    alert('代课需求发布成功！等待同学接单')
-    onClose()
+
+    // 生成唯一ID和时间戳
+    const demandWithId = {
+      ...formData,
+      id: Date.now().toString(), // 唯一标识
+      createdAt: new Date().toISOString(), // 创建时间
+      status: 'pending' // 初始状态：待接单
+    }
+
+    try {
+      await onPublish(demandWithId)
+    } catch (error) {
+      // 错误处理在父组件中已经做了
+    }
   }
 
   const isFormValid = () => {
-    return formData.title && formData.course && formData.teacher &&
-      formData.campus && formData.time && formData.date &&
+    return formData.title && formData.campus &&
+      formData.gender && formData.time && formData.date &&
       formData.price && formData.description && formData.contact
   }
 
@@ -78,39 +91,9 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
                 <input
                   type="text"
                   required
-                  placeholder="例如：周一高数课代课"
+                  placeholder="例如：今天三四节本部专业课找代课"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  课程名称 *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="例如：高等数学"
-                  value={formData.course}
-                  onChange={(e) => setFormData({ ...formData, course: e.target.value })}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  任课老师 *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="例如：张老师"
-                  value={formData.teacher}
-                  onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -131,6 +114,23 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
                   ))}
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  性别要求 *
+                </label>
+                <select
+                  required
+                  value={formData.gender}
+                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">性别要求</option>
+                  {genders.map(gender => (
+                    <option key={gender} value={gender}>{gender}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* 时间信息 */}
@@ -142,7 +142,7 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
                 <input
                   type="text"
                   required
-                  placeholder="例如：周一 第1-2节 (8:00-9:40)"
+                  placeholder="例如：今天 第1-2节 (8:00-9:40)"
                   value={formData.time}
                   onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -176,8 +176,8 @@ export default function SubstituteModal({ onClose }: SubstituteModalProps) {
                       type="button"
                       onClick={() => setFormData({ ...formData, type: type.value })}
                       className={`p-3 border-2 rounded-xl text-center transition-all ${formData.type === type.value
-                          ? 'border-blue-500 bg-blue-50 shadow-sm'
-                          : 'border-gray-300 hover:border-gray-400'
+                        ? 'border-blue-500 bg-blue-50 shadow-sm'
+                        : 'border-gray-300 hover:border-gray-400'
                         }`}
                     >
                       <div className="text-lg mb-1">{type.emoji}</div>

@@ -2,43 +2,132 @@
 
 import { useState } from 'react'
 
-interface JobsModalProps {
+interface JobModalProps {
   onClose: () => void
-  activeTab: 'post' | 'find'
-  setActiveTab: (tab: 'post' | 'find') => void
+  onSuccess: () => void
+  activeTab: 'publish' | 'find'
+  setActiveTab: (tab: 'publish' | 'find') => void
 }
 
-export default function JobsModal({ onClose, activeTab, setActiveTab }: JobsModalProps) {
+// API 基础URL
+const API_BASE_URL = 'http://localhost:8081/api/jobs';
+
+export default function JobModal({ onClose, onSuccess, activeTab, setActiveTab }: JobModalProps) {
   const [formData, setFormData] = useState({
     title: '',
+    description: '',
     company: '',
-    type: '兼职',
+    jobType: '',
     category: '',
     salary: '',
     location: '',
-    duration: '',
+    workAddress: '',
+    contactInfo: '',
+    contactPerson: '',
     requirements: '',
-    description: '',
-    contact: '',
+    benefits: '',
+    workHours: '',
     urgent: false
   })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const jobTypes = ['兼职', '实习']
-  const categories = ['教育培训', '餐饮服务', '技术开发', '市场运营', '行政文员', '销售推广', '其他']
+  const jobTypes = ['兼职', '实习', '全职']
+  const categories = ['技术开发', '市场推广', '教育辅导', '行政文员', '设计创意', '餐饮服务', '销售业务', '其他']
+  const locations = ['主校区', '东校区', '西校区', '新校区', '全市']
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('发布职位:', formData)
-    // 这里后续会连接后端API
-    alert('职位发布成功！')
-    onClose()
+    setLoading(true)
+    setError('')
+
+    // 表单验证
+    const requiredFields = ['title', 'description', 'company', 'jobType', 'category',
+      'salary', 'location', 'contactInfo', 'contactPerson']
+    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData])
+
+    if (missingFields.length > 0) {
+      setError('请填写所有必填字段')
+      setLoading(false)
+      return
+    }
+
+    try {
+      // 准备提交数据 - 确保字段名与后端一致
+      const submitData = {
+        title: formData.title,
+        description: formData.description,
+        company: formData.company,
+        jobType: formData.jobType,
+        category: formData.category,
+        salary: formData.salary,
+        location: formData.location,
+        workAddress: formData.workAddress || `${formData.location}具体面议`,
+        contactInfo: formData.contactInfo,
+        contactPerson: formData.contactPerson,
+        requirements: formData.requirements || '有相关经验者优先',
+        benefits: formData.benefits || '提供培训，表现优秀者可转正',
+        workHours: formData.workHours || '具体面议',
+        urgent: formData.urgent,
+        images: ['💼'],
+        drive: "default_drive",
+        // 添加可能需要的默认值
+        status: "OPEN",
+        viewCount: 0,
+        applyCount: 0
+      }
+
+      console.log('提交职位数据:', submitData)
+
+      // 调用后端API发布职位
+      const response = await fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData),
+      })
+
+      console.log('发布响应状态:', response.status)
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('发布响应数据:', result)
+
+        if (result.success) {
+          console.log('职位发布成功:', result.data)
+          alert('职位发布成功！')
+          onSuccess() // 触发父组件的刷新
+        } else {
+          throw new Error(result.message || '发布失败')
+        }
+      } else {
+        const errorText = await response.text()
+        console.error('发布失败响应:', errorText)
+        throw new Error(`发布失败: ${response.status} - ${errorText}`)
+      }
+    } catch (err) {
+      console.error('发布失败:', err)
+      const errorMessage = err instanceof Error ? err.message : '发布失败'
+      setError(`发布失败: ${errorMessage}`)
+      alert(`发布失败: ${errorMessage}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
   }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {/* 弹窗头部 */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6">
+        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-6">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-white">兼职实习</h2>
             <button
@@ -52,72 +141,80 @@ export default function JobsModal({ onClose, activeTab, setActiveTab }: JobsModa
           {/* 标签切换 */}
           <div className="flex space-x-4 mt-4">
             <button
-              onClick={() => setActiveTab('post')}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'post'
-                ? 'bg-white text-purple-600 shadow-lg'
-                : 'bg-purple-500 text-white hover:bg-purple-400'
+              onClick={() => setActiveTab('publish')}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'publish'
+                  ? 'bg-white text-blue-600 shadow-lg'
+                  : 'bg-blue-500 text-white hover:bg-blue-400'
                 }`}
             >
-              💼 发布职位
+              📢 发布职位
             </button>
             <button
               onClick={() => setActiveTab('find')}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'find'
-                ? 'bg-white text-purple-600 shadow-lg'
-                : 'bg-purple-500 text-white hover:bg-purple-400'
+                  ? 'bg-white text-blue-600 shadow-lg'
+                  : 'bg-blue-500 text-white hover:bg-blue-400'
                 }`}
             >
-              🔍 寻找机会
+              🔍 寻找工作
             </button>
           </div>
         </div>
 
         {/* 弹窗内容 */}
         <div className="p-6 max-h-[60vh] overflow-y-auto">
-          {activeTab === 'post' ? (
+          {activeTab === 'publish' ? (
             // 发布职位表单
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* 错误提示 */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                  {error}
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    职位名称 *
+                    职位标题 *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="例如：家教老师、餐厅服务员"
+                    placeholder="例如：校园推广专员"
                     value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    公司/个人名称 *
+                    公司名称 *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="例如：校园咖啡厅、个人家长"
+                    placeholder="例如：某科技公司"
                     value={formData.company}
-                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    onChange={(e) => handleInputChange('company', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     工作类型 *
                   </label>
                   <select
                     required
-                    value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    value={formData.jobType}
+                    onChange={(e) => handleInputChange('jobType', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
+                    <option value="">选择类型</option>
                     {jobTypes.map(type => (
                       <option key={type} value={type}>{type}</option>
                     ))}
@@ -126,13 +223,13 @@ export default function JobsModal({ onClose, activeTab, setActiveTab }: JobsModa
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    工作类别 *
+                    岗位类别 *
                   </label>
                   <select
                     required
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    onChange={(e) => handleInputChange('category', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">选择类别</option>
                     {categories.map(category => (
@@ -140,91 +237,136 @@ export default function JobsModal({ onClose, activeTab, setActiveTab }: JobsModa
                     ))}
                   </select>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    薪资范围 *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="例如：2000-3000元/月"
+                    value={formData.salary}
+                    onChange={(e) => handleInputChange('salary', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    薪资待遇 *
+                    工作地点 *
+                  </label>
+                  <select
+                    required
+                    value={formData.location}
+                    onChange={(e) => handleInputChange('location', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">选择地点</option>
+                    {locations.map(location => (
+                      <option key={location} value={location}>{location}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    详细地址
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="例如：主校区教学楼A座"
+                    value={formData.workAddress}
+                    onChange={(e) => handleInputChange('workAddress', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    联系人 *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="例如：80-120元/小时、200-300元/天"
-                    value={formData.salary}
-                    onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="例如：张经理"
+                    value={formData.contactPerson}
+                    onChange={(e) => handleInputChange('contactPerson', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    工作地点 *
+                    联系方式 *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="例如：校内、市区、线上"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="手机号或微信"
+                    value={formData.contactInfo}
+                    onChange={(e) => handleInputChange('contactInfo', e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  工作周期 *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="例如：长期有效、3个月、每周2-3次"
-                  value={formData.duration}
-                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  职位要求 *
+                  职位描述 *
                 </label>
                 <textarea
                   required
-                  placeholder="描述对申请者的要求，如专业、技能、经验等"
-                  value={formData.requirements}
-                  onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-                  rows={3}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  工作描述 *
-                </label>
-                <textarea
-                  required
-                  placeholder="详细描述工作内容、职责等"
+                  placeholder="详细描述工作内容、职责等..."
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
                   rows={3}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    任职要求
+                  </label>
+                  <textarea
+                    placeholder="学历、技能、经验等要求..."
+                    value={formData.requirements}
+                    onChange={(e) => handleInputChange('requirements', e.target.value)}
+                    rows={2}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    福利待遇
+                  </label>
+                  <textarea
+                    placeholder="薪资福利、培训机会等..."
+                    value={formData.benefits}
+                    onChange={(e) => handleInputChange('benefits', e.target.value)}
+                    rows={2}
+                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  联系方式 *
+                  工作时间
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="手机号、微信或邮箱"
-                  value={formData.contact}
-                  onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="例如：周一至周五 9:00-18:00"
+                  value={formData.workHours}
+                  onChange={(e) => handleInputChange('workHours', e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -233,37 +375,47 @@ export default function JobsModal({ onClose, activeTab, setActiveTab }: JobsModa
                   type="checkbox"
                   id="urgent"
                   checked={formData.urgent}
-                  onChange={(e) => setFormData({ ...formData, urgent: e.target.checked })}
-                  className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  onChange={(e) => handleInputChange('urgent', e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
                 <label htmlFor="urgent" className="ml-2 text-sm text-gray-700">
-                  标记为紧急招聘
+                  标记为急招职位
                 </label>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-xl text-lg transition-colors"
+                disabled={loading}
+                className={`w-full font-bold py-4 px-6 rounded-xl text-lg transition-colors ${loading
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
               >
-                🚀 发布职位
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    发布中...
+                  </span>
+                ) : (
+                  '🚀 发布职位'
+                )}
               </button>
             </form>
           ) : (
-            // 寻找机会页面
+            // 寻找工作页面
             <div className="space-y-6">
               <div>
                 <h3 className="text-xl font-bold text-gray-800 mb-4">寻找理想工作</h3>
-                <p className="text-gray-600 mb-6">在主页面可以浏览和搜索所有兼职实习机会</p>
+                <p className="text-gray-600 mb-6">在主页面可以浏览和搜索所有职位信息</p>
               </div>
 
-              <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-                <h4 className="font-bold text-purple-800 mb-2">💡 求职建议</h4>
-                <ul className="text-purple-700 text-sm space-y-2">
-                  <li>• 仔细阅读职位要求，确保符合条件</li>
-                  <li>• 提前准备简历和相关作品</li>
-                  <li>• 面试前了解公司背景和职位内容</li>
-                  <li>• 注意个人信息安全，谨防诈骗</li>
-                  <li>• 确认工作时间和薪资结算方式</li>
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <h4 className="font-bold text-blue-800 mb-2">💡 求职小贴士</h4>
+                <ul className="text-blue-700 text-sm space-y-1">
+                  <li>• 仔细阅读职位要求和公司信息</li>
+                  <li>• 准备一份简洁明了的简历</li>
+                  <li>• 面试前了解公司背景和岗位职责</li>
+                  <li>• 注意保护个人隐私和安全</li>
                 </ul>
               </div>
 

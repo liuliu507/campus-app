@@ -186,7 +186,7 @@ export default function Home() {
       <footer className="bg-white/60 backdrop-blur-sm border-t border-gray-200 mt-16">
         <div className="max-w-6xl mx-auto px-4 py-8 text-center">
           <p className="text-gray-500 text-sm">
-            © 2024 校园助手 · 让每个人的大学生活都值得纪念
+            © 2025 校园助手 · 让每个人的大学生活都值得纪念
           </p>
         </div>
       </footer>

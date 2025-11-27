@@ -1,12 +1,14 @@
+// app/errand/components/ErrandModal.tsx
 'use client'
 
 import { useState } from 'react'
 
 interface ErrandModalProps {
   onClose: () => void
+  onPublish: (formData: any) => void
 }
 
-export default function ErrandModal({ onClose }: ErrandModalProps) {
+export default function ErrandModal({ onClose, onPublish }: ErrandModalProps) {
   const [formData, setFormData] = useState({
     title: '',
     category: '',
@@ -43,11 +45,13 @@ export default function ErrandModal({ onClose }: ErrandModalProps) {
     { value: '非常紧急', label: '非常紧急', color: 'text-red-600 font-bold' }
   ]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('发布跑腿需求:', formData)
-    alert('跑腿需求发布成功！等待同学接单')
-    onClose()
+    try {
+      await onPublish(formData)
+    } catch (error) {
+      // 错误处理在父组件中已经做了
+    }
   }
 
   const isFormValid = () => {

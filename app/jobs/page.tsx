@@ -1,94 +1,283 @@
 'use client'
 
-import { useState } from 'react'
-import JobsModal from './components/JobsModal'
+import { useState, useEffect } from 'react'
+import JobModal from './components/JobsModal'
 
-// 模拟职位数据
-const mockJobs = [
+// API 基础URL
+const API_BASE_URL = 'http://localhost:8081/api/jobs';
+
+// 职位接口定义
+interface Job {
+  id: number
+  title: string
+  description: string
+  company: string
+  jobType: string
+  category: string
+  salary: string
+  location: string
+  workAddress: string
+  contactInfo: string
+  contactPerson: string
+  requirements: string
+  benefits: string
+  workHours: string
+  publisherId: string
+  publisherName: string
+  images: string[]
+  urgent: boolean
+  status: string
+  viewCount: number
+  applyCount: number
+  createdAt: string
+  expireDate: string
+  timeAgo: string
+  daysLeft: string
+}
+
+// 模拟数据（备用）
+const mockJobs: Job[] = [
   {
     id: 1,
-    title: '家教老师（数学）',
-    company: '个人家长',
-    type: '兼职',
-    salary: '80-120元/小时',
-    location: '线上/线下均可',
-    duration: '长期有效',
-    requirements: '数学专业优先，有家教经验',
-    description: '辅导初中生数学，每周2-3次，每次2小时',
-    contact: '138****1234',
-    time: '2小时前',
+    title: '校园推广专员',
+    description: '负责校园产品推广，与同学沟通交流，组织推广活动',
+    company: '某科技公司',
+    jobType: '兼职',
+    category: '市场推广',
+    salary: '2000-3000元/月',
+    location: '主校区',
+    workAddress: '主校区及周边',
+    contactInfo: '138****1234',
+    contactPerson: '张经理',
+    requirements: '性格开朗，沟通能力强，有推广经验者优先',
+    benefits: '提供培训，表现优秀者有奖金',
+    workHours: '周一至周五，弹性工作',
+    publisherId: 'publisher1',
+    publisherName: '张经理',
+    images: ['💼'],
     urgent: true,
-    category: '教育培训'
+    status: 'OPEN',
+    viewCount: 45,
+    applyCount: 12,
+    createdAt: new Date().toISOString(),
+    expireDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+    timeAgo: '2小时前',
+    daysLeft: '15天后截止'
   },
   {
     id: 2,
-    title: '餐厅服务员',
-    company: '校园咖啡厅',
-    type: '兼职',
-    salary: '18-22元/小时',
-    location: '校内',
-    duration: '3个月',
-    requirements: '有服务意识，沟通能力强',
-    description: '负责点单、送餐、清洁等工作，工作时间灵活',
-    contact: '139****5678',
-    time: '1天前',
+    title: '软件开发实习生',
+    description: '参与公司产品开发，学习最新技术栈',
+    company: '某软件公司',
+    jobType: '实习',
+    category: '技术开发',
+    salary: '3000-5000元/月',
+    location: '全市',
+    workAddress: '高新区科技园',
+    contactInfo: '139****5678',
+    contactPerson: '李总监',
+    requirements: '计算机相关专业，熟悉Java或Python',
+    benefits: '提供转正机会，技术大牛指导',
+    workHours: '周一至周五 9:00-18:00',
+    publisherId: 'publisher2',
+    publisherName: '李总监',
+    images: ['💻'],
     urgent: false,
-    category: '餐饮服务'
+    status: 'OPEN',
+    viewCount: 78,
+    applyCount: 23,
+    createdAt: new Date().toISOString(),
+    expireDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+    timeAgo: '1天前',
+    daysLeft: '10天后截止'
   },
   {
     id: 3,
-    title: '前端开发实习生',
-    company: '科技公司',
-    type: '实习',
-    salary: '200-300元/天',
-    location: '市区',
-    duration: '3-6个月',
-    requirements: '熟悉React、Vue等框架',
-    description: '参与公司产品前端开发，有导师指导',
-    contact: '137****9012',
-    time: '3天前',
+    title: '家教老师',
+    description: '辅导初中数学，帮助学生提高成绩',
+    company: '个人',
+    jobType: '兼职',
+    category: '教育辅导',
+    salary: '100元/小时',
+    location: '东校区',
+    workAddress: '学生家中或学校附近',
+    contactInfo: '137****9012',
+    contactPerson: '王老师',
+    requirements: '数学成绩优秀，有耐心，沟通能力强',
+    benefits: '时间灵活，报酬优厚',
+    workHours: '周末或晚上',
+    publisherId: 'publisher3',
+    publisherName: '王老师',
+    images: ['📚'],
     urgent: false,
-    category: '技术开发'
-  },
-  {
-    id: 4,
-    title: '活动策划助理',
-    company: '文化传媒公司',
-    type: '实习',
-    salary: '150-200元/天',
-    location: '市区',
-    duration: '2个月',
-    requirements: '有活动策划经验，创意能力强',
-    description: '协助策划校园活动，负责执行和协调',
-    contact: '136****3456',
-    time: '5天前',
-    urgent: false,
-    category: '市场运营'
+    status: 'OPEN',
+    viewCount: 32,
+    applyCount: 8,
+    createdAt: new Date().toISOString(),
+    expireDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
+    timeAgo: '3天前',
+    daysLeft: '20天后截止'
   }
 ]
 
 export default function JobsPage() {
   const [showModal, setShowModal] = useState(false)
-  const [activeTab, setActiveTab] = useState<'post' | 'find'>('find')
+  const [activeTab, setActiveTab] = useState<'publish' | 'find'>('find')
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedType, setSelectedType] = useState('全部')
+  const [selectedJobType, setSelectedJobType] = useState('全部')
   const [selectedCategory, setSelectedCategory] = useState('全部')
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string>('')
+  const [refreshTrigger, setRefreshTrigger] = useState(0) // 新增刷新触发器
 
-  const jobTypes = ['全部', '兼职', '实习']
-  const categories = ['全部', '教育培训', '餐饮服务', '技术开发', '市场运营', '行政文员', '销售推广', '其他']
+  const jobTypes = ['全部', '兼职', '实习', '全职']
+  const categories = ['全部', '技术开发', '市场推广', '教育辅导', '行政文员', '设计创意', '餐饮服务', '销售业务', '其他']
 
-  const filteredJobs = mockJobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesType = selectedType === '全部' || job.type === selectedType
-    const matchesCategory = selectedCategory === '全部' || job.category === selectedCategory
-    return matchesSearch && matchesType && matchesCategory
-  })
+  // 加载职位数据
+  const loadJobs = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      console.log('开始加载职位数据...')
+      const response = await fetch(API_BASE_URL)
+      if (response.ok) {
+        const result = await response.json()
+        console.log('API返回数据:', result)
 
-  const handleApply = (jobId: number) => {
-    console.log('申请职位:', jobId)
-    alert('申请成功！请等待用人单位联系')
+        if (result.success) {
+          console.log('获取职位成功，数据量:', result.data?.length || 0)
+          // 确保数据是数组，如果不是则转换为数组
+          const jobsData = Array.isArray(result.data) ? result.data : []
+          setJobs(jobsData)
+
+          // 如果没有数据，使用模拟数据
+          if (jobsData.length === 0) {
+            console.log('API返回空数据，使用模拟数据')
+            setJobs(mockJobs)
+          }
+        } else {
+          console.warn('API返回success为false:', result.message)
+          setJobs(mockJobs)
+        }
+      } else {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+    } catch (err) {
+      console.error('加载职位失败:', err)
+      const errorMessage = err instanceof Error ? err.message : '加载职位失败'
+      setError(`${errorMessage}，使用模拟数据`)
+      setJobs(mockJobs)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 搜索职位
+  const searchJobs = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const params = new URLSearchParams()
+      if (searchTerm) params.append('keyword', searchTerm)
+      if (selectedJobType && selectedJobType !== '全部') {
+        params.append('jobType', selectedJobType)
+      }
+      if (selectedCategory && selectedCategory !== '全部') {
+        params.append('category', selectedCategory)
+      }
+
+      const url = `${API_BASE_URL}/search?${params.toString()}`
+      console.log('搜索URL:', url)
+      const response = await fetch(url)
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success) {
+          setJobs(result.data)
+        } else {
+          throw new Error(result.message || '搜索失败')
+        }
+      } else {
+        throw new Error(`搜索失败: ${response.status}`)
+      }
+    } catch (err) {
+      console.error('搜索职位失败:', err)
+      const errorMessage = err instanceof Error ? err.message : '搜索失败'
+      setError(`${errorMessage}，使用本地筛选`)
+      // 搜索失败时使用本地筛选
+      const filtered = mockJobs.filter(job => {
+        const matchesSearch = searchTerm ?
+          job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          job.company.toLowerCase().includes(searchTerm.toLowerCase()) : true
+
+        const matchesJobType = selectedJobType === '全部' || job.jobType === selectedJobType
+        const matchesCategory = selectedCategory === '全部' || job.category === selectedCategory
+
+        return matchesSearch && matchesJobType && matchesCategory
+      })
+      setJobs(filtered)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadJobs()
+  }, [refreshTrigger]) // 添加refreshTrigger依赖
+
+  useEffect(() => {
+    if (searchTerm || selectedJobType !== '全部' || selectedCategory !== '全部') {
+      searchJobs()
+    } else {
+      loadJobs()
+    }
+  }, [searchTerm, selectedJobType, selectedCategory])
+
+  const handleContactEmployer = (job: Job) => {
+    navigator.clipboard.writeText(job.contactInfo)
+      .then(() => {
+        alert('已复制联系方式到剪贴板')
+      })
+      .catch(() => {
+        alert(`联系方式: ${job.contactInfo}`)
+      })
+  }
+
+  const handleApplyJob = async (jobId: number) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/${jobId}/apply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success) {
+          alert('申请成功！我们会尽快联系您')
+          // 刷新数据
+          loadJobs()
+        } else {
+          throw new Error(result.message || '申请失败')
+        }
+      } else {
+        throw new Error(`申请失败: ${response.status}`)
+      }
+    } catch (err) {
+      console.error('申请失败:', err)
+      const errorMessage = err instanceof Error ? err.message : '申请失败'
+      alert(`申请失败: ${errorMessage}`)
+    }
+  }
+
+  const handleJobPublished = () => {
+    setShowModal(false)
+    // 强制刷新数据
+    setRefreshTrigger(prev => prev + 1)
+    console.log('职位发布成功，触发数据刷新')
   }
 
   return (
@@ -97,7 +286,7 @@ export default function JobsPage() {
         {/* 页面标题 */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">兼职实习</h1>
-          <p className="text-gray-600 text-lg">积累工作经验，开启职业旅程</p>
+          <p className="text-gray-600 text-lg">寻找理想工作，积累实践经验</p>
         </div>
 
         {/* 搜索和筛选栏 */}
@@ -107,22 +296,22 @@ export default function JobsPage() {
             <div className="flex-1">
               <input
                 type="text"
-                placeholder="🔍 搜索职位、公司或关键词..."
+                placeholder="🔍 搜索职位、公司或描述..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
-            {/* 类型筛选 */}
-            <div className="flex gap-2">
+            {/* 工作类型筛选 */}
+            <div className="flex gap-2 overflow-x-auto">
               {jobTypes.map(type => (
                 <button
                   key={type}
-                  onClick={() => setSelectedType(type)}
-                  className={`whitespace-nowrap px-4 py-2 rounded-lg transition-colors ${selectedType === type
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  onClick={() => setSelectedJobType(type)}
+                  className={`whitespace-nowrap px-4 py-2 rounded-lg transition-colors ${selectedJobType === type
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
                   {type}
@@ -130,121 +319,174 @@ export default function JobsPage() {
               ))}
             </div>
 
-            {/* 分类筛选 */}
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-            >
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-
             {/* 发布按钮 */}
             <button
               onClick={() => setShowModal(true)}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-xl whitespace-nowrap transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl whitespace-nowrap transition-colors"
             >
-              💼 发布职位
+              📢 发布职位
             </button>
+          </div>
+
+          {/* 分类筛选 */}
+          <div className="flex gap-2 overflow-x-auto">
+            {categories.map(category => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`whitespace-nowrap px-4 py-2 rounded-lg transition-colors ${selectedCategory === category
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+
+          {/* 统计信息和错误提示 */}
+          <div className="flex flex-col gap-2 mt-4">
+            <div className="flex gap-6 text-sm text-gray-600">
+              <span>📊 共 {jobs.length} 个职位</span>
+              <span>🚨 {jobs.filter(j => j.urgent).length} 个急招</span>
+              <span>✅ {jobs.filter(j => j.status === 'OPEN').length} 个招聘中</span>
+            </div>
+            {error && (
+              <div className="text-red-500 text-sm bg-red-50 p-2 rounded-lg">
+                ⚠️ {error}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* 职位列表 */}
-        <div className="space-y-6">
-          {filteredJobs.map((job) => (
-            <div key={job.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
-              <div className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                  {/* 左边：职位信息 */}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-xl font-bold text-gray-800">{job.title}</h3>
-                          {job.urgent && (
-                            <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">
-                              急招
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                          <span className="flex items-center gap-1">
-                            🏢 {job.company}
-                          </span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${job.type === '兼职'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-green-100 text-green-800'
-                            }`}>
-                            {job.type}
-                          </span>
-                          <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
-                            {job.category}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+        {/* 加载状态 */}
+        {loading && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="text-gray-600 mt-2">加载中...</p>
+          </div>
+        )}
 
-                    {/* 薪资和地点 */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-purple-600">{job.salary}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <span>📍</span>
-                        <span>{job.location}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <span>⏰</span>
-                        <span>{job.duration}</span>
-                      </div>
-                    </div>
+        {/* 职位网格 */}
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {jobs.map((job) => (
+              <div key={job.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden relative">
+                {/* 职位状态标签 */}
+                <div className="absolute top-4 left-4 z-10">
+                  {job.status === 'CLOSED' && (
+                    <span className="bg-gray-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                      已结束
+                    </span>
+                  )}
+                  {job.status === 'FILLED' && (
+                    <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                      已招满
+                    </span>
+                  )}
+                </div>
 
-                    {/* 职位要求 */}
-                    <div className="mb-4">
-                      <h4 className="font-semibold text-gray-700 mb-2">职位要求：</h4>
-                      <p className="text-gray-600 text-sm">{job.requirements}</p>
-                    </div>
+                {/* 职位图片 */}
+                <div className="h-48 bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center text-6xl relative">
+                  {job.images && job.images.length > 0 ? job.images[0] : '💼'}
+                  {job.urgent && (
+                    <span className="absolute top-4 right-4 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">
+                      急招
+                    </span>
+                  )}
+                </div>
 
-                    {/* 工作描述 */}
-                    <div className="mb-4">
-                      <h4 className="font-semibold text-gray-700 mb-2">工作内容：</h4>
-                      <p className="text-gray-600 text-sm">{job.description}</p>
-                    </div>
+                <div className="p-6">
+                  {/* 职位标题和公司 */}
+                  <div className="mb-3">
+                    <h3 className="text-lg font-bold text-gray-800 line-clamp-2">{job.title}</h3>
+                    <p className="text-blue-600 font-medium">{job.company}</p>
+                  </div>
 
-                    {/* 时间和联系方式 */}
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span>🕒 {job.time}</span>
-                      <span>📞 {job.contact}</span>
+                  {/* 薪资和类型 */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-2xl font-bold text-green-600">{job.salary}</span>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${job.jobType === '兼职' ? 'bg-yellow-100 text-yellow-800' :
+                        job.jobType === '实习' ? 'bg-blue-100 text-blue-800' :
+                          'bg-purple-100 text-purple-800'
+                      }`}>
+                      {job.jobType}
+                    </span>
+                  </div>
+
+                  {/* 职位信息 */}
+                  <div className="space-y-2 text-sm text-gray-600 mb-4">
+                    <div className="flex items-center gap-2">
+                      <span>🏷️ {job.category}</span>
+                      <span>📍 {job.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>⏰ {job.timeAgo || '未知时间'}</span>
+                      <span className={`font-medium ${job.daysLeft?.includes('今天') ? 'text-red-600' :
+                          job.daysLeft?.includes('天后') ? 'text-orange-600' : 'text-gray-600'
+                        }`}>
+                        📅 {job.daysLeft || '未知'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span>👀 {job.viewCount} 浏览</span>
+                      <span>📨 {job.applyCount} 申请</span>
                     </div>
                   </div>
 
-                  {/* 右边：操作按钮 */}
-                  <div className="flex lg:flex-col gap-3 lg:w-48">
+                  {/* 职位描述 */}
+                  <p className="text-gray-700 text-sm mb-4 line-clamp-2">{job.description}</p>
+
+                  {/* 操作按钮 */}
+                  <div className="flex space-x-3">
                     <button
-                      onClick={() => handleApply(job.id)}
-                      className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-medium transition-colors whitespace-nowrap"
+                      onClick={() => handleApplyJob(job.id)}
+                      disabled={job.status !== 'OPEN'}
+                      className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${job.status === 'OPEN'
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
                     >
-                      📨 立即申请
+                      {job.status === 'OPEN' ? '📝 立即申请' : '已结束'}
                     </button>
-                    <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium transition-colors whitespace-nowrap">
-                      💬 联系咨询
-                    </button>
-                    <button className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 px-6 rounded-lg font-medium transition-colors whitespace-nowrap">
-                      🤍 收藏职位
+                    <button
+                      onClick={() => handleContactEmployer(job)}
+                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                    >
+                      💬 联系HR
                     </button>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
+
+        {/* 空状态 */}
+        {!loading && jobs.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">💼</div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">暂无职位</h3>
+            <p className="text-gray-600 mb-6">暂时没有找到符合条件的职位</p>
+            <button
+              onClick={() => {
+                setSearchTerm('')
+                setSelectedJobType('全部')
+                setSelectedCategory('全部')
+                setRefreshTrigger(prev => prev + 1)
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl"
+            >
+              重置筛选条件
+            </button>
+          </div>
+        )}
 
         {/* 发布职位弹窗 */}
         {showModal && (
-          <JobsModal
+          <JobModal
             onClose={() => setShowModal(false)}
+            onSuccess={handleJobPublished}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />
