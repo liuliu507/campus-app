@@ -136,6 +136,7 @@ export default function ErrandPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [tasks, setTasks] = useState<ErrandTask[]>([])
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   const categories = ['全部', '取送物品', '文件传递', '餐饮代购', '商品代购', '文印服务', '其他']
   const urgencyLevels = ['全部', '一般', '紧急', '非常紧急']
@@ -195,6 +196,57 @@ export default function ErrandPage() {
     }
   }
 
+  // 删除任务
+  const handleDeleteTask = async (taskId: number) => {
+    if (!confirm('确定要删除这个跑腿需求吗？此操作不可撤销。')) {
+      return
+    }
+
+    setDeletingId(taskId)
+
+    try {
+      console.log(`🗑️ 删除跑腿任务 ID: ${taskId}`)
+
+      const response = await fetch(`http://localhost:8081/api/errands/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      console.log('📡 删除响应状态:', response.status)
+      console.log('📡 删除响应状态文本:', response.statusText)
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('✅ 删除成功:', result)
+
+        // 从列表中移除任务
+        setTasks(prev => prev.filter(task => task.id !== taskId))
+        alert('跑腿需求删除成功！')
+      } else {
+        // 获取详细的错误信息
+        const errorText = await response.text()
+        console.error('❌ 删除失败 - 状态:', response.status)
+        console.error('❌ 删除失败 - 错误信息:', errorText)
+
+        // 尝试解析错误信息
+        try {
+          const errorData = JSON.parse(errorText)
+          console.error('❌ 删除失败 - 解析后的错误:', errorData)
+          alert(`删除失败: ${errorData.message || '未知错误'}`)
+        } catch {
+          console.error('❌ 删除失败 - 原始错误文本:', errorText)
+          alert(`删除失败: ${errorText || '未知错误'}`)
+        }
+      }
+    } catch (err: any) {
+      console.error('❌ 删除任务失败:', err)
+      alert(`删除失败: ${err.message}`)
+    } finally {
+      setDeletingId(null)
+    }
+  }
   const currentTasks = getCurrentTasks()
 
   const filteredTasks = currentTasks.filter(task => {
@@ -463,8 +515,8 @@ export default function ErrandPage() {
                       <span>灵活管理</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">💬</div>
-                      <span>及时沟通</span>
+                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">🗑️</div>
+                      <span>删除管理</span>
                     </div>
                   </>
                 ) : (
@@ -578,7 +630,25 @@ export default function ErrandPage() {
         {/* 任务列表 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredTasks.map((task) => (
-            <div key={task.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200">
+            <div key={task.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 relative">
+              {/* 删除按钮 - 只在"我的需求"页面显示 */}
+              {activeTab === 'my' && (
+                <button
+                  onClick={() => handleDeleteTask(task.id)}
+                  disabled={deletingId === task.id}
+                  className="absolute top-3 right-3 z-10 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="删除需求"
+                >
+                  {deletingId === task.id ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  )}
+                </button>
+              )}
+
               {/* 任务头部 */}
               <div className="p-6 border-b border-gray-100">
                 <div className="flex items-start justify-between mb-3">

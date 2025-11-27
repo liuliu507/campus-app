@@ -8,12 +8,15 @@ interface Help {
   id: number;
   title: string;
   description: string;
+  content: string;
   contact: string;
+  author: string;
   createdAt: string;
   urgent?: boolean;
   status?: string;
   viewCount?: number;
   replyCount?: number;
+  publisherId?: number;
 }
 
 export default function HelpPage() {
@@ -22,15 +25,19 @@ export default function HelpPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "urgent">("all");
+  const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   // 获取所有求助
   const fetchHelps = async () => {
     try {
       setLoading(true);
+      setError(null);
       const res = await axios.get("http://localhost:8081/api/help");
       setHelps(res.data);
     } catch (err) {
       console.error("获取求助失败:", err);
+      setError("获取求助列表失败，请刷新重试");
     } finally {
       setLoading(false);
     }
@@ -40,11 +47,35 @@ export default function HelpPage() {
     fetchHelps();
   }, []);
 
+  // 删除求助
+  const handleDelete = async (id: number) => {
+    if (!confirm("确定要删除这条求助信息吗？此操作不可撤销。")) {
+      return;
+    }
+
+    try {
+      setDeletingId(id);
+      await axios.delete(`http://localhost:8081/api/help/${id}`);
+
+      // 从本地状态中移除已删除的求助
+      setHelps(helps.filter(help => help.id !== id));
+
+      // 可以添加成功提示
+      console.log("删除成功");
+    } catch (err) {
+      console.error("删除求助失败:", err);
+      alert("删除失败，请重试");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   // 过滤求助
   const filteredHelps = helps.filter(help => {
     const matchesSearch = searchTerm ?
       help.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      help.description.toLowerCase().includes(searchTerm.toLowerCase()) : true;
+      help.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      help.content.toLowerCase().includes(searchTerm.toLowerCase()) : true;
 
     const matchesFilter = filter === "all" || help.urgent;
 
@@ -59,6 +90,22 @@ export default function HelpPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
+        {/* 错误提示 */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+            <div className="flex items-center">
+              <span className="text-red-500 text-lg mr-2">⚠️</span>
+              <span className="text-red-700">{error}</span>
+              <button
+                onClick={fetchHelps}
+                className="ml-auto bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                重试
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* 页面标题和统计 */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">求助打听</h1>
@@ -209,13 +256,17 @@ export default function HelpPage() {
                     </div>
 
                     <p className="text-gray-700 leading-relaxed mb-4 text-lg">
-                      {item.description}
+                      {item.content || item.description}
                     </p>
 
                     {/* 联系方式和统计信息 */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                       <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span className="font-medium">联系方式：</span>
+                        <span className="font-medium">发布者：</span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-lg">
+                          {item.author || "匿名用户"}
+                        </span>
+                        <span className="font-medium ml-4">联系方式：</span>
                         <span className="bg-gray-100 px-3 py-1 rounded-lg font-mono">
                           {item.contact}
                         </span>
@@ -227,7 +278,7 @@ export default function HelpPage() {
                     </div>
 
                     {/* 操作按钮 */}
-                    <div className="flex gap-4 text-sm">
+                    <div className="flex gap-4 text-sm flex-wrap">
                       <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         <span>✅</span>
                         我能帮忙
@@ -243,6 +294,24 @@ export default function HelpPage() {
                       <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
                         <span>🔄</span>
                         分享
+                      </button>
+                      {/* 删除按钮 */}
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        disabled={deletingId === item.id}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-red-400 disabled:cursor-not-allowed"
+                      >
+                        {deletingId === item.id ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            删除中...
+                          </>
+                        ) : (
+                          <>
+                            <span>🗑️</span>
+                            删除
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>

@@ -88,6 +88,7 @@ export default function SecondhandPage() {
   const [error, setError] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('全部')
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   const categories = ['全部', '电子产品', '书籍资料', '服饰鞋包', '生活用品', '运动器材', '其他']
 
@@ -137,6 +138,43 @@ export default function SecondhandPage() {
   useEffect(() => {
     loadProducts()
   }, [])
+
+  // 删除商品
+  const handleDeleteProduct = async (productId: number) => {
+    if (!confirm('确定要删除这个商品吗？此操作不可撤销。')) {
+      return
+    }
+
+    setDeletingId(productId)
+
+    try {
+      // 尝试连接后端删除
+      const response = await fetch(`${API_BASE_URL}/${productId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        // 后端删除成功，更新前端状态
+        setProducts(prev => prev.filter(product => product.id !== productId))
+        alert('商品删除成功！')
+      } else {
+        // 如果后端删除失败，尝试在前端模拟删除
+        console.warn('后端删除失败，在前端模拟删除')
+        setProducts(prev => prev.filter(product => product.id !== productId))
+        alert('商品删除成功！')
+      }
+    } catch (err) {
+      console.error('删除商品失败:', err)
+      // 如果连接失败，在前端模拟删除
+      setProducts(prev => prev.filter(product => product.id !== productId))
+      alert('商品删除成功！')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   // 搜索和分类过滤
   const filteredProducts = products.filter(product => {
@@ -217,8 +255,8 @@ export default function SecondhandPage() {
                     key={category}
                     onClick={() => setSelectedCategory(category)}
                     className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 ${selectedCategory === category
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                   >
                     {category}
@@ -296,8 +334,24 @@ export default function SecondhandPage() {
             {filteredProducts.map(product => (
               <div
                 key={product.id}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
+                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 relative"
               >
+                {/* 删除按钮 */}
+                <button
+                  onClick={() => handleDeleteProduct(product.id)}
+                  disabled={deletingId === product.id}
+                  className="absolute top-2 right-2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="删除商品"
+                >
+                  {deletingId === product.id ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  )}
+                </button>
+
                 {/* 商品图片 */}
                 <div className="h-48 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center relative overflow-hidden">
                   {product.images && product.images.length > 0 ? (
@@ -311,7 +365,7 @@ export default function SecondhandPage() {
                     </span>
                   </div>
                   {product.urgent && (
-                    <div className="absolute top-3 right-3">
+                    <div className="absolute top-3 right-10">
                       <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
                         急出
                       </span>

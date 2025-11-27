@@ -12,6 +12,7 @@ interface Review {
   createdAt: string;
   likes?: number;
   dislikes?: number;
+  userId?: number;
 }
 
 export default function ReviewsPage() {
@@ -19,23 +20,23 @@ export default function ReviewsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "red" | "black">("all");
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const fetchReviews = async () => {
     try {
       setLoading(true);
       const res = await axios.get("http://localhost:8081/api/reviews/red-black");
-      console.log("API返回数据:", res.data); // 调试用
+      console.log("API返回数据:", res.data);
 
-      // 转换后端数据为前端需要的格式
       const transformedReviews = res.data.map((item: any) => ({
         id: item.id,
-        title: item.targetName, // 后端返回的是 targetName
+        title: item.targetName,
         content: item.content,
-        // 根据评分判断类型：5分=红榜，1分=黑榜
         type: item.rating === 5 ? "red" : "black",
         createdAt: item.createdAt,
         likes: item.likes || 0,
-        dislikes: 0 // 后端没有 dislikes 字段
+        dislikes: 0,
+        userId: item.userId || 1 // 临时设置用户ID为1，方便测试
       }));
 
       setReviews(transformedReviews);
@@ -46,16 +47,37 @@ export default function ReviewsPage() {
     }
   };
 
+  const handleDeleteReview = async (reviewId: number) => {
+    if (!confirm("确定要删除这条评价吗？此操作不可撤销。")) {
+      return;
+    }
+
+    try {
+      setDeletingId(reviewId);
+      await axios.delete(`http://localhost:8081/api/reviews/${reviewId}`);
+      setReviews(prev => prev.filter(review => review.id !== reviewId));
+      console.log("评价删除成功");
+    } catch (err) {
+      console.error("删除评价失败:", err);
+      alert("删除评价失败，请稍后重试");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // 临时函数：假设所有评价都是当前用户发布的，方便测试
+  const isCurrentUserAuthor = (reviewUserId?: number) => {
+    return true; // 暂时返回true，让所有评价都显示删除按钮
+  };
+
   useEffect(() => {
     fetchReviews();
   }, []);
 
-  // 过滤评价
   const filteredReviews = reviews.filter(review =>
     filter === "all" || review.type === filter
   );
 
-  // 统计数据 - 现在基于转换后的数据统计
   const redCount = reviews.filter(r => r.type === "red").length;
   const blackCount = reviews.filter(r => r.type === "black").length;
 
@@ -92,8 +114,8 @@ export default function ReviewsPage() {
               <button
                 onClick={() => setFilter("all")}
                 className={`px-4 py-2 rounded-lg transition-colors ${filter === "all"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
               >
                 全部
@@ -101,8 +123,8 @@ export default function ReviewsPage() {
               <button
                 onClick={() => setFilter("red")}
                 className={`px-4 py-2 rounded-lg transition-colors ${filter === "red"
-                  ? "bg-red-600 text-white"
-                  : "bg-red-100 text-red-700 hover:bg-red-200"
+                    ? "bg-red-600 text-white"
+                    : "bg-red-100 text-red-700 hover:bg-red-200"
                   }`}
               >
                 👍 红榜推荐
@@ -110,8 +132,8 @@ export default function ReviewsPage() {
               <button
                 onClick={() => setFilter("black")}
                 className={`px-4 py-2 rounded-lg transition-colors ${filter === "black"
-                  ? "bg-gray-800 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-gray-800 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
               >
                 👎 黑榜避雷
@@ -161,58 +183,95 @@ export default function ReviewsPage() {
               filteredReviews.map((item) => (
                 <div
                   key={item.id}
-                  className={`border-l-4 rounded-r-2xl shadow-lg overflow-hidden transition-transform hover:scale-[1.02] ${item.type === "red"
-                    ? "border-l-red-500 bg-gradient-to-r from-red-50 to-white"
-                    : "border-l-gray-700 bg-gradient-to-r from-gray-50 to-white"
+                  className={`border-l-4 rounded-r-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl relative ${item.type === "red"
+                      ? "border-l-red-500 bg-gradient-to-r from-red-50 to-white"
+                      : "border-l-gray-700 bg-gradient-to-r from-gray-50 to-white"
                     }`}
                 >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <span className={`text-2xl ${item.type === "red" ? "text-red-500" : "text-gray-700"
-                          }`}>
-                          {item.type === "red" ? "👍" : "👎"}
-                        </span>
-                        <div>
+                  {/* 删除按钮 - 放在右上角明显位置 */}
+                  {isCurrentUserAuthor(item.userId) && (
+                    <div className="absolute top-4 right-4">
+                      <button
+                        onClick={() => handleDeleteReview(item.id)}
+                        disabled={deletingId === item.id}
+                        className={`
+                          flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all
+                          ${deletingId === item.id
+                            ? "bg-gray-400 text-white cursor-not-allowed"
+                            : "bg-red-500 text-white hover:bg-red-600 shadow-md hover:shadow-lg"
+                          }
+                        `}
+                      >
+                        {deletingId === item.id ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>删除中</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span>删除</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="p-6 pr-32"> {/* 增加右边距给删除按钮留空间 */}
+                    {/* 头部区域 */}
+                    <div className="flex items-start gap-3 mb-4">
+                      <span className={`text-2xl ${item.type === "red" ? "text-red-500" : "text-gray-700"
+                        }`}>
+                        {item.type === "red" ? "👍" : "👎"}
+                      </span>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 flex-wrap">
                           <h2 className={`text-xl font-bold ${item.type === "red" ? "text-red-700" : "text-gray-800"
                             }`}>
                             {item.title}
                           </h2>
-                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-1 ${item.type === "red"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-gray-200 text-gray-700"
+                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${item.type === "red"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-gray-200 text-gray-700"
                             }`}>
                             {item.type === "red" ? "红榜推荐" : "黑榜避雷"}
                           </div>
                         </div>
+                        <div className="flex items-center gap-4 mt-2">
+                          <span className="text-sm text-gray-500">
+                            {new Date(item.createdAt).toLocaleDateString('zh-CN')}
+                          </span>
+                        </div>
                       </div>
-                      <span className="text-sm text-gray-500">
-                        {new Date(item.createdAt).toLocaleDateString('zh-CN')}
-                      </span>
                     </div>
 
-                    <p className="text-gray-700 leading-relaxed mb-4 text-lg">
+                    {/* 内容区域 */}
+                    <p className="text-gray-700 leading-relaxed mb-4 text-lg whitespace-pre-wrap">
                       {item.content}
                     </p>
 
-                    {/* 互动按钮 */}
-                    <div className="flex gap-4 text-sm text-gray-600">
-                      <button className="flex items-center gap-1 hover:text-green-600 transition-colors">
-                        <span>👍</span>
-                        <span>有用 ({item.likes || 0})</span>
-                      </button>
-                      <button className="flex items-center gap-1 hover:text-red-600 transition-colors">
-                        <span>👎</span>
-                        <span>无用 ({item.dislikes || 0})</span>
-                      </button>
-                      <button className="flex items-center gap-1 hover:text-blue-600 transition-colors">
-                        <span>💬</span>
-                        <span>评论</span>
-                      </button>
-                      <button className="flex items-center gap-1 hover:text-purple-600 transition-colors">
-                        <span>🔗</span>
-                        <span>分享</span>
-                      </button>
+                    {/* 互动按钮区域 */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div className="flex gap-6 text-sm text-gray-600">
+                        <button className="flex items-center gap-2 hover:text-green-600 transition-colors px-3 py-2 rounded-lg hover:bg-green-50">
+                          <span className="text-lg">👍</span>
+                          <span>有用 ({item.likes || 0})</span>
+                        </button>
+                        <button className="flex items-center gap-2 hover:text-red-600 transition-colors px-3 py-2 rounded-lg hover:bg-red-50">
+                          <span className="text-lg">👎</span>
+                          <span>无用 ({item.dislikes || 0})</span>
+                        </button>
+                        <button className="flex items-center gap-2 hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-blue-50">
+                          <span className="text-lg">💬</span>
+                          <span>评论</span>
+                        </button>
+                        <button className="flex items-center gap-2 hover:text-purple-600 transition-colors px-3 py-2 rounded-lg hover:bg-purple-50">
+                          <span className="text-lg">🔗</span>
+                          <span>分享</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

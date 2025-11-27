@@ -19,6 +19,7 @@ export default function SharePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const loadShares = async () => {
     try {
@@ -36,6 +37,33 @@ export default function SharePage() {
   useEffect(() => {
     loadShares();
   }, []);
+
+  // 删除趣事
+  const handleDelete = async (id: number) => {
+    if (!confirm("确定要删除这条趣事吗？此操作不可撤销。")) {
+      return;
+    }
+
+    try {
+      setDeletingId(id);
+      const response = await fetch(`http://localhost:8081/api/share/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // 从本地状态中移除已删除的趣事
+        setShares(shares.filter(share => share.id !== id));
+        console.log("删除成功");
+      } else {
+        throw new Error("删除失败");
+      }
+    } catch (error) {
+      console.error("删除趣事失败:", error);
+      alert("删除失败，请重试");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // 搜索过滤
   const filteredShares = shares.filter(share =>
@@ -161,8 +189,28 @@ export default function SharePage() {
                           </div>
                         </div>
                       </div>
-                      <div className="text-sm text-gray-400">
-                        #{item.id.toString().padStart(4, '0')}
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm text-gray-400">
+                          #{item.id.toString().padStart(4, '0')}
+                        </div>
+                        {/* 删除按钮 */}
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          disabled={deletingId === item.id}
+                          className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors disabled:bg-red-50 disabled:text-red-400 disabled:cursor-not-allowed text-sm"
+                        >
+                          {deletingId === item.id ? (
+                            <>
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
+                              删除中
+                            </>
+                          ) : (
+                            <>
+                              <span>🗑️</span>
+                              删除
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
 

@@ -130,6 +130,7 @@ export default function JobsPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
   const [refreshTrigger, setRefreshTrigger] = useState(0) // 新增刷新触发器
+  const [deletingId, setDeletingId] = useState<number | null>(null) // 删除状态管理
 
   const jobTypes = ['全部', '兼职', '实习', '全职']
   const categories = ['全部', '技术开发', '市场推广', '教育辅导', '行政文员', '设计创意', '餐饮服务', '销售业务', '其他']
@@ -223,6 +224,58 @@ export default function JobsPage() {
     }
   }
 
+  // 删除职位
+  const handleDeleteJob = async (jobId: number) => {
+    if (!confirm('确定要删除这个职位吗？此操作不可撤销。')) {
+      return
+    }
+
+    setDeletingId(jobId)
+
+    try {
+      console.log(`🗑️ 删除职位 ID: ${jobId}`)
+
+      const response = await fetch(`${API_BASE_URL}/${jobId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      console.log('📡 删除响应状态:', response.status)
+      console.log('📡 删除响应状态文本:', response.statusText)
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('✅ 删除成功:', result)
+
+        // 从列表中移除职位
+        setJobs(prev => prev.filter(job => job.id !== jobId))
+        alert('职位删除成功！')
+      } else {
+        // 获取详细的错误信息
+        const errorText = await response.text()
+        console.error('❌ 删除失败 - 状态:', response.status)
+        console.error('❌ 删除失败 - 错误信息:', errorText)
+
+        // 尝试解析错误信息
+        try {
+          const errorData = JSON.parse(errorText)
+          console.error('❌ 删除失败 - 解析后的错误:', errorData)
+          alert(`删除失败: ${errorData.message || '未知错误'}`)
+        } catch {
+          console.error('❌ 删除失败 - 原始错误文本:', errorText)
+          alert(`删除失败: ${errorText || '未知错误'}`)
+        }
+      }
+    } catch (err: any) {
+      console.error('❌ 删除职位失败:', err)
+      alert(`删除失败: ${err.message}`)
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   useEffect(() => {
     loadJobs()
   }, [refreshTrigger]) // 添加refreshTrigger依赖
@@ -280,6 +333,24 @@ export default function JobsPage() {
     console.log('职位发布成功，触发数据刷新')
   }
 
+  // 获取当前用户发布的职位（临时逻辑）
+  const getMyJobs = () => {
+    // 临时逻辑：显示所有状态为 OPEN 的职位作为"我的职位"
+    return jobs.filter(job => job.status === 'OPEN')
+  }
+
+  // 根据当前标签获取职位列表
+  const getCurrentJobs = () => {
+    switch (activeTab) {
+      case 'publish':
+        return getMyJobs()
+      default:
+        return jobs
+    }
+  }
+
+  const currentJobs = getCurrentJobs()
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
@@ -289,6 +360,32 @@ export default function JobsPage() {
           <p className="text-gray-600 text-lg">寻找理想工作，积累实践经验</p>
         </div>
 
+        {/* 标签切换 */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white rounded-2xl shadow-lg p-2">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveTab('find')}
+                className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'find'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                🔍 寻找工作
+              </button>
+              <button
+                onClick={() => setActiveTab('publish')}
+                className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'publish'
+                  ? 'bg-green-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                📢 我的发布
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* 搜索和筛选栏 */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -296,7 +393,7 @@ export default function JobsPage() {
             <div className="flex-1">
               <input
                 type="text"
-                placeholder="🔍 搜索职位、公司或描述..."
+                placeholder={activeTab === 'publish' ? "🔍 在我的发布中搜索..." : "🔍 搜索职位、公司或描述..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -310,8 +407,8 @@ export default function JobsPage() {
                   key={type}
                   onClick={() => setSelectedJobType(type)}
                   className={`whitespace-nowrap px-4 py-2 rounded-lg transition-colors ${selectedJobType === type
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
                   {type}
@@ -335,8 +432,8 @@ export default function JobsPage() {
                 key={category}
                 onClick={() => setSelectedCategory(category)}
                 className={`whitespace-nowrap px-4 py-2 rounded-lg transition-colors ${selectedCategory === category
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
               >
                 {category}
@@ -347,9 +444,10 @@ export default function JobsPage() {
           {/* 统计信息和错误提示 */}
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex gap-6 text-sm text-gray-600">
-              <span>📊 共 {jobs.length} 个职位</span>
-              <span>🚨 {jobs.filter(j => j.urgent).length} 个急招</span>
-              <span>✅ {jobs.filter(j => j.status === 'OPEN').length} 个招聘中</span>
+              <span>📊 共 {currentJobs.length} 个职位</span>
+              <span>🚨 {currentJobs.filter(j => j.urgent).length} 个急招</span>
+              <span>✅ {currentJobs.filter(j => j.status === 'OPEN').length} 个招聘中</span>
+              {activeTab === 'publish' && <span>🗑️ 可管理我的发布</span>}
             </div>
             {error && (
               <div className="text-red-500 text-sm bg-red-50 p-2 rounded-lg">
@@ -370,8 +468,26 @@ export default function JobsPage() {
         {/* 职位网格 */}
         {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs.map((job) => (
+            {currentJobs.map((job) => (
               <div key={job.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden relative">
+                {/* 删除按钮 - 只在"我的发布"页面显示 */}
+                {activeTab === 'publish' && (
+                  <button
+                    onClick={() => handleDeleteJob(job.id)}
+                    disabled={deletingId === job.id}
+                    className="absolute top-4 right-4 z-20 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="删除职位"
+                  >
+                    {deletingId === job.id ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+
                 {/* 职位状态标签 */}
                 <div className="absolute top-4 left-4 z-10">
                   {job.status === 'CLOSED' && (
@@ -390,7 +506,7 @@ export default function JobsPage() {
                 <div className="h-48 bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center text-6xl relative">
                   {job.images && job.images.length > 0 ? job.images[0] : '💼'}
                   {job.urgent && (
-                    <span className="absolute top-4 right-4 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">
+                    <span className="absolute top-4 right-12 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">
                       急招
                     </span>
                   )}
@@ -407,8 +523,8 @@ export default function JobsPage() {
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-2xl font-bold text-green-600">{job.salary}</span>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${job.jobType === '兼职' ? 'bg-yellow-100 text-yellow-800' :
-                        job.jobType === '实习' ? 'bg-blue-100 text-blue-800' :
-                          'bg-purple-100 text-purple-800'
+                      job.jobType === '实习' ? 'bg-blue-100 text-blue-800' :
+                        'bg-purple-100 text-purple-800'
                       }`}>
                       {job.jobType}
                     </span>
@@ -423,7 +539,7 @@ export default function JobsPage() {
                     <div className="flex items-center gap-2">
                       <span>⏰ {job.timeAgo || '未知时间'}</span>
                       <span className={`font-medium ${job.daysLeft?.includes('今天') ? 'text-red-600' :
-                          job.daysLeft?.includes('天后') ? 'text-orange-600' : 'text-gray-600'
+                        job.daysLeft?.includes('天后') ? 'text-orange-600' : 'text-gray-600'
                         }`}>
                         📅 {job.daysLeft || '未知'}
                       </span>
@@ -439,22 +555,44 @@ export default function JobsPage() {
 
                   {/* 操作按钮 */}
                   <div className="flex space-x-3">
-                    <button
-                      onClick={() => handleApplyJob(job.id)}
-                      disabled={job.status !== 'OPEN'}
-                      className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${job.status === 'OPEN'
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }`}
-                    >
-                      {job.status === 'OPEN' ? '📝 立即申请' : '已结束'}
-                    </button>
-                    <button
-                      onClick={() => handleContactEmployer(job)}
-                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
-                    >
-                      💬 联系HR
-                    </button>
+                    {activeTab === 'publish' ? (
+                      // 我的发布页面的按钮
+                      <>
+                        <button
+                          onClick={() => handleDeleteJob(job.id)}
+                          disabled={deletingId === job.id}
+                          className="flex-1 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white py-2 px-4 rounded-lg font-medium transition-all shadow hover:shadow-md disabled:opacity-50"
+                        >
+                          {deletingId === job.id ? '删除中...' : '🗑️ 删除'}
+                        </button>
+                        <button
+                          onClick={() => handleContactEmployer(job)}
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-2 px-4 rounded-lg font-medium transition-all shadow hover:shadow-md"
+                        >
+                          📊 查看申请
+                        </button>
+                      </>
+                    ) : (
+                      // 寻找工作页面的按钮
+                      <>
+                        <button
+                          onClick={() => handleApplyJob(job.id)}
+                          disabled={job.status !== 'OPEN'}
+                          className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${job.status === 'OPEN'
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
+                        >
+                          {job.status === 'OPEN' ? '📝 立即申请' : '已结束'}
+                        </button>
+                        <button
+                          onClick={() => handleContactEmployer(job)}
+                          className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                        >
+                          💬 联系HR
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -463,11 +601,18 @@ export default function JobsPage() {
         )}
 
         {/* 空状态 */}
-        {!loading && jobs.length === 0 && (
+        {!loading && currentJobs.length === 0 && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">💼</div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">暂无职位</h3>
-            <p className="text-gray-600 mb-6">暂时没有找到符合条件的职位</p>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">
+              {activeTab === 'publish' ? '暂无发布职位' : '暂无职位'}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              {activeTab === 'publish'
+                ? '您还没有发布任何职位'
+                : '暂时没有找到符合条件的职位'
+              }
+            </p>
             <button
               onClick={() => {
                 setSearchTerm('')
@@ -477,7 +622,7 @@ export default function JobsPage() {
               }}
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl"
             >
-              重置筛选条件
+              {activeTab === 'publish' ? '发布第一个职位' : '重置筛选条件'}
             </button>
           </div>
         )}

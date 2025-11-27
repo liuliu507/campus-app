@@ -83,6 +83,31 @@ export default function FriendsPage() {
     }
   }
 
+  // 删除活动
+  const handleDelete = async (activityId: number) => {
+    if (!confirm('确定要删除这个活动吗？此操作不可撤销。')) {
+      return
+    }
+
+    try {
+      const res = await fetch(`http://localhost:8081/api/friends/${activityId}`, {
+        method: 'DELETE'
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(errorText || '删除失败')
+      }
+
+      // 从本地状态中移除已删除的活动
+      setActivities(prev => prev.filter(a => a.id !== activityId))
+      alert('活动删除成功')
+    } catch (e: any) {
+      console.error('删除失败', e)
+      alert('删除失败：' + (e.message || e))
+    }
+  }
+
   const handleContact = (contact: string) => {
     if (!contact) {
       alert('未提供联系方式')
@@ -194,12 +219,31 @@ export default function FriendsPage() {
                   {activity.maxParticipants > 0 && activity.participants >= activity.maxParticipants && <p className="text-red-600 text-sm mt-1 text-center">已满员</p>}
                 </div>
 
-                <div className="flex space-x-3">
-                  <button onClick={() => handleJoin(activity.id)} disabled={activity.maxParticipants > 0 && activity.participants >= activity.maxParticipants} className={`flex-1 py-3 px-6 rounded-lg font-medium transition-colors ${activity.maxParticipants > 0 && activity.participants >= activity.maxParticipants ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700 text-white'}`}>
+                <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
+                  <button
+                    onClick={() => handleJoin(activity.id)}
+                    disabled={activity.maxParticipants > 0 && activity.participants >= activity.maxParticipants}
+                    className={`flex-1 py-3 px-6 rounded-lg font-medium transition-colors ${activity.maxParticipants > 0 && activity.participants >= activity.maxParticipants ? 'bg-gray-400 text-white cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700 text-white'}`}
+                  >
                     {activity.maxParticipants > 0 && activity.participants >= activity.maxParticipants ? '已满员' : '✅ 立即加入'}
                   </button>
-                  <button onClick={() => handleContact(activity.contact)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium">💬 联系组织者</button>
-                  <button className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 px-6 rounded-lg font-medium">🤍 收藏活动</button>
+                  <button
+                    onClick={() => handleContact(activity.contact)}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium"
+                  >
+                    💬 联系组织者
+                  </button>
+                  <button
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 px-6 rounded-lg font-medium"
+                  >
+                    🤍 收藏活动
+                  </button>
+                  <button
+                    onClick={() => handleDelete(activity.id)}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg font-medium"
+                  >
+                    🗑️ 删除活动
+                  </button>
                 </div>
 
                 {expandedActivity === activity.id && (
