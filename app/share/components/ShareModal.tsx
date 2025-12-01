@@ -27,7 +27,7 @@ export default function ShareModal({ isOpen, onClose, onSuccess }: ShareModalPro
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:8081/api/share/create", {
+      const res = await fetch("https://campus-backend-1-uo30.onrender.com/api/share/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -154,8 +154,8 @@ export default function ShareModal({ isOpen, onClose, onSuccess }: ShareModalPro
               onClick={handleSubmit}
               disabled={loading || !userId || !content.trim() || content.length < 5}
               className={`w-full font-bold py-4 px-6 rounded-xl text-lg transition-colors ${loading || !userId || !content.trim() || content.length < 5
-                  ? "bg-gray-400 text-white cursor-not-allowed"
-                  : "bg-purple-600 hover:bg-purple-700 text-white"
+                ? "bg-gray-400 text-white cursor-not-allowed"
+                : "bg-purple-600 hover:bg-purple-700 text-white"
                 }`}
             >
               {loading ? (

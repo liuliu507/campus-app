@@ -42,7 +42,7 @@ export default function ReviewModal({ isOpen, onClose, onReviewCreated }: Props)
 
       console.log("提交数据:", requestData); // 调试用
 
-      await axios.post("http://localhost:8081/api/reviews/red-black", requestData);
+      await axios.post("https://campus-backend-1-uo30.onrender.com/api/reviews/red-black", requestData);
 
       setTitle("");
       setContent("");

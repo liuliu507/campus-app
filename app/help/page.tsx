@@ -33,7 +33,7 @@ export default function HelpPage() {
     try {
       setLoading(true);
       setError(null);
-      const res = await axios.get("http://localhost:8081/api/help");
+      const res = await axios.get("https://campus-backend-1-uo30.onrender.com/api/help");
       setHelps(res.data);
     } catch (err) {
       console.error("获取求助失败:", err);
@@ -55,7 +55,7 @@ export default function HelpPage() {
 
     try {
       setDeletingId(id);
-      await axios.delete(`http://localhost:8081/api/help/${id}`);
+      await axios.delete(`https://campus-backend-1-uo30.onrender.com/api/help/${id}`);
 
       // 从本地状态中移除已删除的求助
       setHelps(helps.filter(help => help.id !== id));

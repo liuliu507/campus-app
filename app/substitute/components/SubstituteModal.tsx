@@ -1,4 +1,3 @@
-// components/SubstituteModal.tsx
 'use client'
 
 import { useState } from 'react'
@@ -12,15 +11,18 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
   const [formData, setFormData] = useState({
     title: '',
     campus: '',
-    gender: '',
-    time: '',
-    date: '',
-    type: '水课',
-    price: '',
+    genderRequirement: '',
+    classTime: '',
+    classDate: '',
+    courseType: '水课',
+    reward: '',
     description: '',
-    contact: '',
-    urgency: '一般'
+    contactInfo: '',
+    urgency: '一般',
+    teacher: '未知老师'
   })
+
+  const [loading, setLoading] = useState(false)
 
   const campuses = ['桃花坪', '二里半', '南苑', '天马', '咸嘉湖', '江边']
   const genders = ['女', '男', '不限']
@@ -39,25 +41,33 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // 生成唯一ID和时间戳
-    const demandWithId = {
-      ...formData,
-      id: Date.now().toString(), // 唯一标识
-      createdAt: new Date().toISOString(), // 创建时间
-      status: 'pending' // 初始状态：待接单
+    if (!isFormValid()) {
+      alert('请填写所有必填字段！');
+      return;
     }
 
+    setLoading(true)
+
     try {
-      await onPublish(demandWithId)
+      // 直接调用父组件的 onPublish 函数，让父组件处理API请求
+      await onPublish(formData)
     } catch (error) {
+      console.error('发布失败:', error)
       // 错误处理在父组件中已经做了
+    } finally {
+      setLoading(false)
     }
   }
 
   const isFormValid = () => {
     return formData.title && formData.campus &&
-      formData.gender && formData.time && formData.date &&
-      formData.price && formData.description && formData.contact
+      formData.genderRequirement && formData.classTime && formData.classDate &&
+      formData.reward && formData.description && formData.contactInfo
+  }
+
+  // 获取今天的日期，用于设置日期输入的最小值
+  const getTodayDate = () => {
+    return new Date().toISOString().split('T')[0]
   }
 
   return (
@@ -72,7 +82,8 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
             </div>
             <button
               onClick={onClose}
-              className="text-white hover:text-blue-200 text-2xl transition-colors"
+              disabled={loading}
+              className="text-white hover:text-blue-200 text-2xl transition-colors disabled:opacity-50"
             >
               ✕
             </button>
@@ -95,6 +106,7 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
                 />
               </div>
 
@@ -107,6 +119,7 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
                   value={formData.campus}
                   onChange={(e) => setFormData({ ...formData, campus: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
                 >
                   <option value="">选择校区</option>
                   {campuses.map(campus => (
@@ -121,15 +134,30 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
                 </label>
                 <select
                   required
-                  value={formData.gender}
-                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                  value={formData.genderRequirement}
+                  onChange={(e) => setFormData({ ...formData, genderRequirement: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
                 >
                   <option value="">性别要求</option>
                   {genders.map(gender => (
                     <option key={gender} value={gender}>{gender}</option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  任课老师
+                </label>
+                <input
+                  type="text"
+                  placeholder="例如：张老师"
+                  value={formData.teacher}
+                  onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
+                />
               </div>
             </div>
 
@@ -142,10 +170,11 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
                 <input
                   type="text"
                   required
-                  placeholder="例如：今天 第1-2节 (8:00-9:40)"
-                  value={formData.time}
-                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                  placeholder="例如：第1-2节 (8:00-9:40)"
+                  value={formData.classTime}
+                  onChange={(e) => setFormData({ ...formData, classTime: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
                 />
               </div>
 
@@ -156,9 +185,11 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
                 <input
                   type="date"
                   required
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  min={getTodayDate()}
+                  value={formData.classDate}
+                  onChange={(e) => setFormData({ ...formData, classDate: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -174,11 +205,12 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
                     <button
                       key={type.value}
                       type="button"
-                      onClick={() => setFormData({ ...formData, type: type.value })}
-                      className={`p-3 border-2 rounded-xl text-center transition-all ${formData.type === type.value
+                      onClick={() => setFormData({ ...formData, courseType: type.value })}
+                      disabled={loading}
+                      className={`p-3 border-2 rounded-xl text-center transition-all ${formData.courseType === type.value
                         ? 'border-blue-500 bg-blue-50 shadow-sm'
                         : 'border-gray-300 hover:border-gray-400'
-                        }`}
+                        } disabled:opacity-50`}
                     >
                       <div className="text-lg mb-1">{type.emoji}</div>
                       <div className="font-medium text-sm">{type.label}</div>
@@ -196,10 +228,11 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
                   <input
                     type="text"
                     required
-                    placeholder="例如：30元"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="例如：30 或 30元"
+                    value={formData.reward}
+                    onChange={(e) => setFormData({ ...formData, reward: e.target.value })}
                     className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={loading}
                   />
                 </div>
 
@@ -211,6 +244,7 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
                     value={formData.urgency}
                     onChange={(e) => setFormData({ ...formData, urgency: e.target.value })}
                     className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={loading}
                   >
                     {urgencyLevels.map(level => (
                       <option key={level.value} value={level.value} className={level.color}>
@@ -238,6 +272,7 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={4}
                 className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                disabled={loading}
               />
             </div>
 
@@ -250,19 +285,27 @@ export default function SubstituteModal({ onClose, onPublish }: SubstituteModalP
                 type="text"
                 required
                 placeholder="手机号或微信，用于接单者联系您"
-                value={formData.contact}
-                onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                value={formData.contactInfo}
+                onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })}
                 className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                disabled={loading}
               />
             </div>
 
             {/* 发布按钮 */}
             <button
               type="submit"
-              disabled={!isFormValid()}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-6 rounded-xl text-lg transition-all duration-300 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+              disabled={!isFormValid() || loading}
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-6 rounded-xl text-lg transition-all duration-300 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center"
             >
-              🚀 发布代课需求
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  发布中...
+                </>
+              ) : (
+                '🚀 发布代课需求'
+              )}
             </button>
           </form>
         </div>

@@ -10,7 +10,7 @@ interface JobModalProps {
 }
 
 // API 基础URL
-const API_BASE_URL = 'http://localhost:8081/api/jobs';
+const API_BASE_URL = 'https://campus-backend-1-uo30.onrender.com/api/jobs';
 
 export default function JobModal({ onClose, onSuccess, activeTab, setActiveTab }: JobModalProps) {
   const [formData, setFormData] = useState({
@@ -143,8 +143,8 @@ export default function JobModal({ onClose, onSuccess, activeTab, setActiveTab }
             <button
               onClick={() => setActiveTab('publish')}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'publish'
-                  ? 'bg-white text-blue-600 shadow-lg'
-                  : 'bg-blue-500 text-white hover:bg-blue-400'
+                ? 'bg-white text-blue-600 shadow-lg'
+                : 'bg-blue-500 text-white hover:bg-blue-400'
                 }`}
             >
               📢 发布职位
@@ -152,8 +152,8 @@ export default function JobModal({ onClose, onSuccess, activeTab, setActiveTab }
             <button
               onClick={() => setActiveTab('find')}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'find'
-                  ? 'bg-white text-blue-600 shadow-lg'
-                  : 'bg-blue-500 text-white hover:bg-blue-400'
+                ? 'bg-white text-blue-600 shadow-lg'
+                : 'bg-blue-500 text-white hover:bg-blue-400'
                 }`}
             >
               🔍 寻找工作
@@ -387,8 +387,8 @@ export default function JobModal({ onClose, onSuccess, activeTab, setActiveTab }
                 type="submit"
                 disabled={loading}
                 className={`w-full font-bold py-4 px-6 rounded-xl text-lg transition-colors ${loading
-                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
               >
                 {loading ? (

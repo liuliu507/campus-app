@@ -25,7 +25,7 @@ export default function ReviewsPage() {
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:8081/api/reviews/red-black");
+      const res = await axios.get("https://campus-backend-1-uo30.onrender.com/api/reviews/red-black");
       console.log("API返回数据:", res.data);
 
       const transformedReviews = res.data.map((item: any) => ({
@@ -47,6 +47,7 @@ export default function ReviewsPage() {
     }
   };
 
+  // 在 ReviewsPage 组件中更新 handleDeleteReview 函数
   const handleDeleteReview = async (reviewId: number) => {
     if (!confirm("确定要删除这条评价吗？此操作不可撤销。")) {
       return;
@@ -54,12 +55,21 @@ export default function ReviewsPage() {
 
     try {
       setDeletingId(reviewId);
-      await axios.delete(`http://localhost:8081/api/reviews/${reviewId}`);
+
+      // 使用新的删除API - 根据发布者权限删除
+      await axios.delete(`https://campus-backend-1-uo30.onrender.com/api/reviews/publisher/1/${reviewId}`);
+
+      // 从本地状态中移除已删除的评价
       setReviews(prev => prev.filter(review => review.id !== reviewId));
+
       console.log("评价删除成功");
-    } catch (err) {
+    } catch (err: any) {
       console.error("删除评价失败:", err);
-      alert("删除评价失败，请稍后重试");
+      if (err.response?.status === 403) {
+        alert("无权删除此评价");
+      } else {
+        alert("删除评价失败，请稍后重试");
+      }
     } finally {
       setDeletingId(null);
     }
@@ -114,8 +124,8 @@ export default function ReviewsPage() {
               <button
                 onClick={() => setFilter("all")}
                 className={`px-4 py-2 rounded-lg transition-colors ${filter === "all"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
               >
                 全部
@@ -123,8 +133,8 @@ export default function ReviewsPage() {
               <button
                 onClick={() => setFilter("red")}
                 className={`px-4 py-2 rounded-lg transition-colors ${filter === "red"
-                    ? "bg-red-600 text-white"
-                    : "bg-red-100 text-red-700 hover:bg-red-200"
+                  ? "bg-red-600 text-white"
+                  : "bg-red-100 text-red-700 hover:bg-red-200"
                   }`}
               >
                 👍 红榜推荐
@@ -132,8 +142,8 @@ export default function ReviewsPage() {
               <button
                 onClick={() => setFilter("black")}
                 className={`px-4 py-2 rounded-lg transition-colors ${filter === "black"
-                    ? "bg-gray-800 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-gray-800 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
               >
                 👎 黑榜避雷
@@ -184,8 +194,8 @@ export default function ReviewsPage() {
                 <div
                   key={item.id}
                   className={`border-l-4 rounded-r-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl relative ${item.type === "red"
-                      ? "border-l-red-500 bg-gradient-to-r from-red-50 to-white"
-                      : "border-l-gray-700 bg-gradient-to-r from-gray-50 to-white"
+                    ? "border-l-red-500 bg-gradient-to-r from-red-50 to-white"
+                    : "border-l-gray-700 bg-gradient-to-r from-gray-50 to-white"
                     }`}
                 >
                   {/* 删除按钮 - 放在右上角明显位置 */}
@@ -233,8 +243,8 @@ export default function ReviewsPage() {
                             {item.title}
                           </h2>
                           <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${item.type === "red"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-gray-200 text-gray-700"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-200 text-gray-700"
                             }`}>
                             {item.type === "red" ? "红榜推荐" : "黑榜避雷"}
                           </div>

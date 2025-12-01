@@ -60,7 +60,7 @@ export default function FriendsModal({ onClose, onCreated }: Props) {
     }
 
     try {
-      const res = await fetch('http://localhost:8081/api/friends/create', {
+      const res = await fetch('https://campus-backend-1-uo30.onrender.com/api/friends/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

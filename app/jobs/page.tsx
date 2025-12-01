@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import JobModal from './components/JobsModal'
 
 // API 基础URL
-const API_BASE_URL = 'http://localhost:8081/api/jobs';
+const API_BASE_URL = 'https://campus-backend-1-uo30.onrender.com/api/jobs';
 
 // 职位接口定义
 interface Job {

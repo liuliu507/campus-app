@@ -29,7 +29,7 @@ export default function HelpModal({ isOpen, onClose, onHelpCreated }: Props) {
 
     try {
       setLoading(true);
-      await axios.post("http://localhost:8081/api/help", {
+      await axios.post("https://campus-backend-1-uo30.onrender.com/api/help", {
         title,
         content: description, // 添加 content 字段，使用 description 的值
         description,

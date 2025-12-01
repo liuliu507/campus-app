@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import SecondhandModal from './components/SecondhandModal'
 
 // 直接连接后端
-const API_BASE_URL = 'http://localhost:8081/api/secondhand';
+const API_BASE_URL = 'https://campus-backend-1-uo30.onrender.com/api/secondhand';
 
 interface SecondhandProduct {
   id: number
