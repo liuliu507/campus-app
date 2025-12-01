@@ -24,7 +24,7 @@ export default function SharePage() {
   const loadShares = async () => {
     try {
       setLoading(true);
-      const res = await fetch("https://campus-backend-1-uo30.onrender.com/api/share/all");
+      const res = await fetch("/api/share/all");
       const data = await res.json();
       setShares(data);
     } catch (error) {
@@ -46,7 +46,7 @@ export default function SharePage() {
 
     try {
       setDeletingId(id);
-      const response = await fetch(`https://campus-backend-1-uo30.onrender.com/api/share/${id}`, {
+      const response = await fetch(`/api/share/${id}`, {
         method: 'DELETE',
       });
 

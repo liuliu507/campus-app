@@ -39,7 +39,7 @@ export default function FriendsPage() {
   const fetchActivities = async () => {
     setLoading(true)
     try {
-      const res = await fetch('https://campus-backend-1-uo30.onrender.com/api/friends')
+      const res = await fetch('/api/friends')
       if (!res.ok) throw new Error('fetch failed')
       const data: Activity[] = await res.json()
       // map: backend 使用 timeText / maxParticipants 等字段
@@ -66,7 +66,7 @@ export default function FriendsPage() {
     const participantContact = prompt('请输入联系方式（选填）') || ''
 
     try {
-      const res = await fetch(`https://campus-backend-1-uo30.onrender.com/api/friends/${activityId}/join?participantName=${encodeURIComponent(participantName)}&participantContact=${encodeURIComponent(participantContact)}`, {
+      const res = await fetch(`/api/friends/${activityId}/join?participantName=${encodeURIComponent(participantName)}&participantContact=${encodeURIComponent(participantContact)}`, {
         method: 'POST'
       })
       if (!res.ok) {
@@ -90,7 +90,7 @@ export default function FriendsPage() {
     }
 
     try {
-      const res = await fetch(`https://campus-backend-1-uo30.onrender.com/api/friends/${activityId}`, {
+      const res = await fetch(`/api/friends/${activityId}`, {
         method: 'DELETE'
       })
 

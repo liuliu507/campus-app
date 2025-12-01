@@ -10,7 +10,7 @@ interface JobModalProps {
 }
 
 // API 基础URL
-const API_BASE_URL = 'https://campus-backend-1-uo30.onrender.com/api/jobs';
+const API_BASE_URL = '/api/jobs';
 
 export default function JobModal({ onClose, onSuccess, activeTab, setActiveTab }: JobModalProps) {
   const [formData, setFormData] = useState({

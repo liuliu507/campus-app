@@ -25,7 +25,7 @@ export default function ReviewsPage() {
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("https://campus-backend-1-uo30.onrender.com/api/reviews/red-black");
+      const res = await axios.get("/api/reviews/red-black");
       console.log("API返回数据:", res.data);
 
       const transformedReviews = res.data.map((item: any) => ({
@@ -57,7 +57,7 @@ export default function ReviewsPage() {
       setDeletingId(reviewId);
 
       // 使用新的删除API - 根据发布者权限删除
-      await axios.delete(`https://campus-backend-1-uo30.onrender.com/api/reviews/publisher/1/${reviewId}`);
+      await axios.delete(`/api/reviews/publisher/1/${reviewId}`);
 
       // 从本地状态中移除已删除的评价
       setReviews(prev => prev.filter(review => review.id !== reviewId));

@@ -40,7 +40,7 @@ export default function SubstitutePage() {
   const loadDemands = async () => {
     try {
       console.log('开始加载代课需求数据...')
-      const response = await fetch('https://campus-backend-1-uo30.onrender.com/api/class-substitution')
+      const response = await fetch('/api/class-substitution')
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
 
@@ -75,7 +75,7 @@ export default function SubstitutePage() {
       console.log('开始发布需求:', formData)
       const publishData = { ...formData, publisherId: 1001 } // 固定用户ID
 
-      const response = await fetch('https://campus-backend-1-uo30.onrender.com/api/class-substitution', {
+      const response = await fetch('/api/class-substitution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(publishData)
@@ -111,7 +111,7 @@ export default function SubstitutePage() {
     try {
       // 后端暂无该接口，先给出提示；后续把路径改成 /api/class-substitution/{id} 即可
       alert('删除功能暂未开放，等待后端支持')
-      // const response = await fetch(`https://campus-backend-1-uo30.onrender.com/api/class-substitution/${id}`, {
+      // const response = await fetch(`/api/class-substitution/${id}`, {
       //   method: 'DELETE'
       // })
       // if (response.ok) {
@@ -130,7 +130,7 @@ export default function SubstitutePage() {
   const handleAcceptDemand = async (id: string) => {
     try {
       const response = await fetch(
-        `https://campus-backend-1-uo30.onrender.com/api/class-substitution/${id}/accept?acceptorId=1001`,
+        `/api/class-substitution/${id}/accept?acceptorId=1001`,
         { method: 'POST' }
       )
 
@@ -297,20 +297,20 @@ export default function SubstitutePage() {
                           <span className="bg-green-100 text-green-700 px-2 py-1 rounded">{d.type}</span>
                           <span
                             className={`px-2 py-1 rounded ${d.urgency === '非常紧急'
-                                ? 'bg-red-100 text-red-700'
-                                : d.urgency === '紧急'
-                                  ? 'bg-orange-100 text-orange-700'
-                                  : 'bg-gray-100 text-gray-700'
+                              ? 'bg-red-100 text-red-700'
+                              : d.urgency === '紧急'
+                                ? 'bg-orange-100 text-orange-700'
+                                : 'bg-gray-100 text-gray-700'
                               }`}
                           >
                             {d.urgency}
                           </span>
                           <span
                             className={`px-2 py-1 rounded ${d.status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-700'
-                                : d.status === 'accepted'
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-gray-100 text-gray-700'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : d.status === 'accepted'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-700'
                               }`}
                           >
                             {d.status === 'pending' ? '待接单' : d.status === 'accepted' ? '已接单' : '已完成'}

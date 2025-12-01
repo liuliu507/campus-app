@@ -20,7 +20,7 @@ interface FormData {
 }
 
 // 直接在组件内部定义API地址，避免传递问题
-const API_BASE_URL = 'https://campus-backend-1-uo30.onrender.com/api/secondhand';
+const API_BASE_URL = '/api/secondhand';
 
 export default function SecondhandModal({ onClose, onSuccess }: SecondhandModalProps) {
   const [formData, setFormData] = useState<FormData>({

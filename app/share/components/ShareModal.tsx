@@ -27,7 +27,7 @@ export default function ShareModal({ isOpen, onClose, onSuccess }: ShareModalPro
 
     try {
       setLoading(true);
-      const res = await fetch("https://campus-backend-1-uo30.onrender.com/api/share/create", {
+      const res = await fetch("/api/share/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

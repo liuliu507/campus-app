@@ -147,7 +147,7 @@ export default function ErrandPage() {
       setLoading(true)
 
       // 真实API调用
-      const response = await fetch('https://campus-backend-1-uo30.onrender.com/api/errands')
+      const response = await fetch('/api/errands')
       if (response.ok) {
         const data = await response.json()
         setTasks(data)
@@ -207,7 +207,7 @@ export default function ErrandPage() {
     try {
       console.log(`🗑️ 删除跑腿任务 ID: ${taskId}`)
 
-      const response = await fetch(`https://campus-backend-1-uo30.onrender.com/api/errands/${taskId}`, {
+      const response = await fetch(`/api/errands/${taskId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -279,7 +279,7 @@ export default function ErrandPage() {
       console.log('发布跑腿需求:', requestData)
 
       // 真实API调用
-      const response = await fetch('https://campus-backend-1-uo30.onrender.com/api/errands', {
+      const response = await fetch('/api/errands', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -358,7 +358,7 @@ export default function ErrandPage() {
   const handleTakeOrder = async (taskId: number) => {
     try {
       // 真实API调用 - 移除 acceptorId 参数
-      const response = await fetch(`https://campus-backend-1-uo30.onrender.com/api/errands/${taskId}/accept`, {
+      const response = await fetch(`/api/errands/${taskId}/accept`, {
         method: 'POST',
       })
 
